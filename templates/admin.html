@@ -1,0 +1,422 @@
+{% extends "layout.html" %}
+{% block title %}Admin Dashboard - Sports League Management{% endblock %}
+{% block content %}
+<div class="admin-container">
+    <div class="neon-sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-user-shield admin-icon"></i>
+            <h3>Admin Panel</h3>
+        </div>
+        <nav class="neon-nav">
+            <a href="{{ url_for('admin') }}" class="nav-item {% if request.endpoint == 'admin' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin.manage_teams') }}" class="nav-item {% if request.endpoint == 'admin.manage_teams' %}active{% endif %}">
+                <i class="fas fa-users"></i>
+                <span>Teams</span>
+            </a>
+            <a href="{{ url_for('admin.manage_players') }}" class="nav-item {% if request.endpoint == 'admin.manage_players' %}active{% endif %}">
+                <i class="fas fa-running"></i>
+                <span>Players</span>
+            </a>
+            <a href="{{ url_for('admin.manage_coaches') }}" class="nav-item {% if request.endpoint == 'admin.manage_coaches' %}active{% endif %}">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>Coaches</span>
+            </a>
+            <a href="{{ url_for('admin.manage_matches') }}" class="nav-item {% if request.endpoint == 'admin.manage_matches' %}active{% endif %}">
+                <i class="fas fa-futbol"></i>
+                <span>Matches</span>
+            </a>
+            <a href="{{ url_for('admin.manage_goals') }}" class="nav-item {% if request.endpoint == 'admin.manage_goals' %}active{% endif %}">
+                <i class="fas fa-bullseye"></i>
+                <span>Goals</span>
+            </a>
+            <a href="{{ url_for('admin.manage_scores') }}" class="nav-item {% if request.endpoint == 'admin.manage_scores' %}active{% endif %}">
+                <i class="fas fa-star"></i>
+                <span>Scores</span>
+            </a>
+            <a href="{{ url_for('admin.manage_scorers') }}" class="nav-item {% if request.endpoint == 'admin.manage_scorers' %}active{% endif %}">
+                <i class="fas fa-trophy"></i>
+                <span>Scorers</span>
+            </a>
+            <a href="{{ url_for('admin.manage_standings') }}" class="nav-item {% if request.endpoint == 'admin.manage_standings' %}active{% endif %}">
+                <i class="fas fa-list-ol"></i>
+                <span>Standings</span>
+            </a>
+            <a href="{{ url_for('admin.manage_stadiums') }}" class="nav-item {% if request.endpoint == 'admin.manage_stadiums' %}active{% endif %}">
+                <i class="fas fa-landmark"></i>
+                <span>Stadiums</span>
+            </a>
+            <a href="{{ url_for('admin.manage_users') }}" class="nav-item {% if request.endpoint == 'admin.manage_users' %}active{% endif %}">
+                <i class="fas fa-users-cog"></i>
+                <span>Users</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="admin-content">
+        {% block admin_content %}
+        <div class="admin-header">
+            <h1 class="neon-title">Admin Dashboard</h1>
+            <p class="subtitle">Manage and monitor your sports league system</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card teams">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Teams</h3>
+                    <div class="stat-number">{{ teams_count if teams_count else 0 }}</div>
+                </div>
+            </div>
+            <div class="stat-card players">
+                <div class="stat-icon">
+                    <i class="fas fa-running"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Active Players</h3>
+                    <div class="stat-number">{{ players_count if players_count else 0 }}</div>
+                </div>
+            </div>
+            <div class="stat-card matches">
+                <div class="stat-icon">
+                    <i class="fas fa-futbol"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Upcoming Matches</h3>
+                    <div class="stat-number">{{ upcoming_matches if upcoming_matches else 0 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-cards">
+            <div class="workflow-card">
+                <div class="card-header">
+                    <i class="fas fa-tasks"></i>
+                    <h3>Match Management Workflow</h3>
+                </div>
+                <div class="workflow-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Create Match</h4>
+                            <p>Set up new matches using the Matches section</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Add Scores</h4>
+                            <p>Record match scores in the Scores section</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Track Goals</h4>
+                            <p>Log goal details in the Goals section</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="updates-card">
+                <div class="card-header">
+                    <i class="fas fa-bell"></i>
+                    <h3>Recent Updates</h3>
+                </div>
+                <div class="updates-list">
+                    <div class="update-item">
+                        <i class="fas fa-futbol"></i>
+                        <span>Latest Match Results</span>
+                    </div>
+                    <div class="update-item">
+                        <i class="fas fa-trophy"></i>
+                        <span>Top Scorers</span>
+                    </div>
+                    <div class="update-item">
+                        <i class="fas fa-list-ol"></i>
+                        <span>League Standings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-green: #00ff9d;
+    --neon-red: #ff0055;
+    --text-light: #ffffff;
+}
+
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--primary-dark);
+}
+
+/* Sidebar Styles */
+.neon-sidebar {
+    width: 250px;
+    background-color: var(--secondary-dark);
+    padding: 1.5rem 0;
+    border-right: 1px solid var(--neon-blue);
+    box-shadow: 2px 0 10px rgba(0, 243, 255, 0.1);
+}
+
+.sidebar-header {
+    padding: 0 1.5rem;
+    margin-bottom: 2rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-icon {
+    font-size: 1.5rem;
+    color: var(--neon-blue);
+}
+
+.neon-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1.5rem;
+    color: var(--text-light);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.nav-item i {
+    width: 20px;
+    color: var(--neon-blue);
+}
+
+.nav-item:hover, .nav-item.active {
+    background: rgba(0, 243, 255, 0.1);
+    color: var(--neon-blue);
+}
+
+/* Content Styles */
+.admin-content {
+    flex: 1;
+    padding: 2rem;
+}
+
+.admin-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.neon-title {
+    color: var(--text-light);
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+}
+
+.subtitle {
+    color: var(--text-light);
+    opacity: 0.8;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--secondary-dark);
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.teams {
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+}
+
+.players {
+    border: 1px solid var(--neon-purple);
+    box-shadow: 0 0 15px rgba(188, 19, 254, 0.1);
+}
+
+.matches {
+    border: 1px solid var(--neon-green);
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.1);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.teams .stat-icon {
+    color: var(--neon-blue);
+}
+
+.players .stat-icon {
+    color: var(--neon-purple);
+}
+
+.matches .stat-icon {
+    color: var(--neon-green);
+}
+
+.stat-info h3 {
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+}
+
+.stat-number {
+    color: var(--text-light);
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+/* Admin Cards */
+.admin-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.workflow-card, .updates-card {
+    background: var(--secondary-dark);
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-light);
+}
+
+.card-header i {
+    color: var(--neon-blue);
+}
+
+.workflow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--neon-blue);
+    color: var(--primary-dark);
+    border-radius: 50%;
+    font-weight: bold;
+}
+
+.step-content h4 {
+    color: var(--text-light);
+    margin-bottom: 0.3rem;
+}
+
+.step-content p {
+    color: var(--text-light);
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.updates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.update-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    color: var(--text-light);
+}
+
+.update-item i {
+    color: var(--neon-blue);
+}
+
+@media (max-width: 768px) {
+    .admin-container {
+        flex-direction: column;
+    }
+
+    .neon-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--neon-blue);
+    }
+
+    .admin-content {
+        padding: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-cards {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

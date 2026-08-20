@@ -1,0 +1,445 @@
+{% extends "user_dashboard.html" %}
+{% block user_content %}
+<div class="neon-section">
+    <h2 class="neon-title">Match Profiles</h2>
+    
+    <div class="filter-container">
+        <form method="get" action="{{ url_for('user.user_matches') }}" class="neon-form">
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label for="league_id" class="neon-label">League</label>
+                    <select id="league_id" name="league_id" class="form-control neon-select">
+                        <option value="">All Leagues</option>
+                        {% for league in leagues %}
+                            <option value="{{ league[0] }}" {% if request.args.get('league_id') == league[0]|string %}selected{% endif %}>{{ league[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="country_id" class="neon-label">Country</label>
+                    <select id="country_id" name="country_id" class="form-control neon-select">
+                        <option value="">All Countries</option>
+                        {% for country in countries %}
+                            <option value="{{ country[0] }}" {% if request.args.get('country_id') == country[0]|string %}selected{% endif %}>{{ country[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="team_id" class="neon-label">Team</label>
+                    <select id="team_id" name="team_id" class="form-control neon-select">
+                        <option value="">All Teams</option>
+                        {% for team in teams %}
+                            <option value="{{ team[0] }}" {% if request.args.get('team_id') == team[0]|string %}selected{% endif %}>{{ team[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="matchday" class="neon-label">Matchday</label>
+                    <select id="matchday" name="matchday" class="form-control neon-select">
+                        <option value="">All Matchdays</option>
+                        {% for day in matchdays %}
+                            <option value="{{ day }}" {% if request.args.get('matchday') == day|string %}selected{% endif %}>{{ day }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <button type="submit" class="btn neon-button filter-btn">FILTER</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="neon-match-list">
+        {% for match in matches %}
+            <div class="neon-match-item {% if match[9] == 'FINISHED' %}finished{% elif match[9] == 'SCHEDULED' %}scheduled{% else %}other{% endif %}">
+                <div class="match-header">
+                    <div class="match-league">
+                        <span>{{ match[5] }}</span>
+                        <span class="match-day">Matchday: {{ match[8] }}</span>
+                    </div>
+                    <div class="match-status">
+                        <span class="status-badge {% if match[9] == 'FINISHED' %}finished{% elif match[9] == 'SCHEDULED' %}scheduled{% else %}other{% endif %}">
+                            {{ match[9] }}
+                        </span>
+                    </div>
+                </div>
+                <a href="{{ url_for('user.profile_match', match_id=match[0]) }}" class="match-content">
+                    <div class="team home-team">
+                        <img src="{{ match[6] }}" alt="{{ match[1] }} Logo" class="team-logo">
+                        <span class="team-name">{{ match[1] }}</span>
+                    </div>
+                    <div class="match-score">
+                        {% if match[9] == 'SCHEDULED' %}
+                            <span class="upcoming-badge">Upcoming</span>
+                        {% else %}
+                            <span class="score-display">
+                                {{ match[3]|default('0') }} - {{ match[4]|default('0') }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="team away-team">
+                        <span class="team-name">{{ match[2] }}</span>
+                        <img src="{{ match[7] }}" alt="{{ match[2] }} Logo" class="team-logo">
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --accent-blue: #4361ee;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-red: #ff0055;
+    --neon-green: #00ff9d;
+    --neon-yellow: #ffdd00;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+    --status-scheduled: var(--neon-blue);
+    --status-finished: var(--neon-green);
+    --status-other: var(--text-gray);
+}
+
+/* Section styling */
+.neon-section {
+    padding: 0;
+    background-color: transparent;
+    border-radius: 8px;
+    margin-top: 0;
+    width: 100%;
+}
+
+/* Title styling */
+.neon-title {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    position: relative;
+    display: inline-block;
+}
+
+.neon-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-red));
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--neon-blue);
+}
+
+/* Filter container */
+.filter-container {
+    margin-bottom: 1rem;
+}
+
+/* Filter form styling */
+.neon-form {
+    background-color: var(--secondary-dark);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) auto;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.neon-label {
+    color: var(--neon-blue);
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.neon-select {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    border: 1px solid var(--neon-blue);
+    border-radius: 4px;
+    padding: 0.4rem;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    height: 38px;
+}
+
+.neon-select:focus {
+    box-shadow: 0 0 0 2px rgba(0, 243, 255, 0.5);
+    border-color: var(--neon-blue);
+}
+
+.neon-button {
+    background-color: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.4rem 1.2rem;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px var(--neon-blue);
+    box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+    height: 38px;
+}
+
+.filter-btn {
+    width: 100%;
+    min-width: 80px;
+    font-size: 0.8rem;
+}
+
+.neon-button:hover {
+    background-color: var(--neon-blue);
+    color: var(--primary-dark);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+}
+
+/* Match list styling */
+.neon-match-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.neon-match-item {
+    background-color: var(--secondary-dark);
+    border: 2px solid var(--neon-blue);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    width: 100%;
+}
+
+.neon-match-item.finished {
+    border-color: var(--status-finished);
+    box-shadow: 0 0 8px var(--status-finished), inset 0 0 2px var(--status-finished);
+}
+
+.neon-match-item.scheduled {
+    border-color: var(--status-scheduled);
+    box-shadow: 0 0 8px var(--status-scheduled), inset 0 0 2px var(--status-scheduled);
+}
+
+.neon-match-item.other {
+    border-color: var(--status-other);
+    box-shadow: 0 0 8px var(--status-other), inset 0 0 2px var(--status-other);
+}
+
+.neon-match-item:hover {
+    transform: translateY(-3px);
+}
+
+.neon-match-item.finished:hover {
+    box-shadow: 0 0 15px var(--status-finished);
+}
+
+.neon-match-item.scheduled:hover {
+    box-shadow: 0 0 15px var(--status-scheduled);
+}
+
+.neon-match-item.other:hover {
+    box-shadow: 0 0 15px var(--status-other);
+}
+
+.match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.match-league {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.match-day {
+    color: var(--text-gray);
+    font-size: 0.8rem;
+}
+
+.match-status {
+    display: flex;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-badge.finished {
+    background-color: rgba(0, 255, 157, 0.1);
+    color: var(--status-finished);
+    border: 1px solid var(--status-finished);
+    text-shadow: 0 0 5px var(--status-finished);
+}
+
+.status-badge.scheduled {
+    background-color: rgba(0, 243, 255, 0.1);
+    color: var(--status-scheduled);
+    border: 1px solid var(--status-scheduled);
+    text-shadow: 0 0 5px var(--status-scheduled);
+}
+
+.status-badge.other {
+    background-color: rgba(139, 140, 159, 0.1);
+    color: var(--status-other);
+    border: 1px solid var(--status-other);
+}
+
+.match-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    text-decoration: none;
+    gap: 1rem;
+}
+
+.match-content:hover {
+    text-decoration: none;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.team {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.home-team {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.away-team {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.team-logo {
+    height: 40px;
+    width: auto;
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+}
+
+.team-name {
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.match-content:hover .team-name {
+    text-shadow: 0 0 5px var(--text-light);
+}
+
+.match-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+}
+
+.score-display {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    min-width: 80px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.upcoming-badge {
+    background-color: rgba(0, 243, 255, 0.1);
+    color: var(--neon-blue);
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    border: 1px solid var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .filter-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .match-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .team {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .home-team, .away-team {
+        text-align: center;
+    }
+    
+    .match-score {
+        order: 3;
+        margin: 0.5rem 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .neon-button {
+        margin-top: 0.5rem;
+    }
+    
+    .match-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .match-status {
+        align-self: flex-start;
+    }
+}
+</style>
+{% endblock %}

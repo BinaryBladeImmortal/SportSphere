@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% block title %}Manage Referees - Admin Panel{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Manage Referees</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <h2 id="form-title">Add Referee</h2>
+            <form action="{{ url_for('admin.manage_referees') }}" method="POST">
+                <input type="hidden" id="referee_id" name="referee_id">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="nationality">Nationality:</label>
+                    <input type="text" class="form-control" id="nationality" name="nationality" required>
+                </div>
+                <button type="submit" name="submit" class="btn btn-primary" id="submit-button">Add Referee</button>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <h2>Existing Referees</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Nationality</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for referee in referees %}
+                    <tr>
+                        <td>{{ referee[0] }}</td>
+                        <td>{{ referee[1] }}</td>
+                        <td>{{ referee[2] }}</td>
+                        <td>
+                            <button class="btn btn-success btn-sm" onclick="editReferee('{{ referee[0] }}', '{{ referee[1] }}', '{{ referee[2] }}')">
+                                <i class="fa fa-pencil-alt"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal" data-id="{{ referee[0] }}" data-action="{{ url_for('admin.manage_referees') }}">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="deleteForm" method="POST" action="">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this item?
+                    <input type="hidden" id="deleteItemId" name="deleteEntityId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" name="delete" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function editReferee(id, name, nationality) {
+        document.getElementById('referee_id').value = id;
+        document.getElementById('name').value = name;
+        document.getElementById('nationality').value = nationality;
+        document.getElementById('submit-button').innerText = 'Update Referee';
+        document.getElementById('form-title').innerText = 'Edit Referee';
+    }
+
+    $('#deleteModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var id = button.data('id');
+        var action = button.data('action');
+        document.getElementById('deleteItemId').value = id;
+        document.getElementById('deleteForm').action = action;
+    });
+</script>
+{% endblock %}

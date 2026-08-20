@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tournament.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .tournament-bracket {
+            display: flex;
+            margin: 20px;
+            overflow-x: auto;
+        }
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            min-width: 200px;
+            margin: 0 20px;
+        }
+        .match {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin: 10px 0;
+            padding: 10px;
+            position: relative;
+        }
+        .match.winner {
+            border-color: #28a745;
+        }
+        .team {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            margin: 2px 0;
+            background: white;
+            border-radius: 3px;
+        }
+        .team.winner {
+            background: #d4edda;
+        }
+        .score-input {
+            width: 40px;
+            text-align: center;
+        }
+        .admin-controls {
+            margin-top: 10px;
+        }
+        .connector {
+            position: absolute;
+            right: -20px;
+            width: 20px;
+            border-top: 2px solid #dee2e6;
+        }
+        .connector.top {
+            top: 25%;
+        }
+        .connector.bottom {
+            top: 75%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h1 class="text-center my-4">{{ tournament.name }}</h1>
+        
+        <div class="tournament-bracket">
+            {% for round in tournament.rounds %}
+            <div class="round">
+                <h3 class="text-center mb-3">{{ round.name }}</h3>
+                {% for match in round.matches %}
+                <div class="match" data-match-id="{{ match.id }}">
+                    <div class="team {% if match.team1.score is not none and match.team2.score is not none and match.team1.score > match.team2.score %}winner{% endif %}">
+                        <span class="team-name">{{ match.team1.name or 'TBD' }}</span>
+                        <input type="number" class="score-input team1-score" value="{{ match.team1.score }}" {% if not match.team1.name %}disabled{% endif %}>
+                    </div>
+                    <div class="team {% if match.team1.score is not none and match.team2.score is not none and match.team2.score > match.team1.score %}winner{% endif %}">
+                        <span class="team-name">{{ match.team2.name or 'TBD' }}</span>
+                        <input type="number" class="score-input team2-score" value="{{ match.team2.score }}" {% if not match.team2.name %}disabled{% endif %}>
+                    </div>
+                    <div class="admin-controls">
+                        <button class="btn btn-sm btn-primary update-score" {% if not match.team1.name or not match.team2.name %}disabled{% endif %}>Update Score</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.update-score').click(function() {
+                const matchDiv = $(this).closest('.match');
+                const matchId = matchDiv.data('match-id');
+                const score1 = matchDiv.find('.team1-score').val();
+                const score2 = matchDiv.find('.team2-score').val();
+
+                if (score1 === '' || score2 === '') {
+                    alert('Please enter scores for both teams');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/update_match',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        match_id: matchId,
+                        score1: parseInt(score1),
+                        score2: parseInt(score2)
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Failed to update match');
+                        }
+                    },
+                    error: function() {
+                        alert('Error updating match');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

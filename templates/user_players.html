@@ -1,0 +1,491 @@
+{% extends "user_dashboard.html" %}
+{% block user_content %}
+<div class="neon-section">
+    <div class="section-header">
+        <h2 class="neon-title">Player Profiles</h2>
+        <a href="{{ url_for('user.compare_players') }}" class="compare-btn">
+            <i class="fas fa-chart-bar"></i> Compare Players
+        </a>
+    </div>
+    
+    <div class="filter-container">
+        <form method="get" action="{{ url_for('user.user_players') }}" class="neon-form">
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label for="league_id" class="neon-label">League</label>
+                    <select id="league_id" name="league_id" class="form-control neon-select">
+                        <option value="">All Leagues</option>
+                        {% for league in leagues %}
+                            <option value="{{ league[0] }}" {% if request.args.get('league_id') == str(league[0]) %}selected{% endif %}>{{ league[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="country_id" class="neon-label">Country</label>
+                    <select id="country_id" name="country_id" class="form-control neon-select">
+                        <option value="">All Countries</option>
+                        {% for country in countries %}
+                            <option value="{{ country[0] }}" {% if request.args.get('country_id') == str(country[0]) %}selected{% endif %}>{{ country[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="team_id" class="neon-label">Team</label>
+                    <select id="team_id" name="team_id" class="form-control neon-select">
+                        <option value="">All Teams</option>
+                        {% for team in teams %}
+                            <option value="{{ team[0] }}" {% if request.args.get('team_id') == str(team[0]) %}selected{% endif %}>{{ team[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="position" class="neon-label">Position</label>
+                    <select id="position" name="position" class="form-control neon-select">
+                        <option value="">All Positions</option>
+                        {% for pos in positions %}
+                            <option value="{{ pos }}" {% if request.args.get('position') == pos %}selected{% endif %}>{{ pos }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <button type="submit" class="btn neon-button filter-btn">FILTER</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="neon-player-list">
+        {% for player in players %}
+            <div class="neon-player-item">
+                <div class="player-content">
+                    <div class="player-info">
+                        {% if player[3] %}
+                            <img src="{{ player[3] }}" alt="{{ player[4] }} Logo" title="{{ player[4] }}" class="team-logo">
+                        {% endif %}
+                        {% if player[5] %}
+                            <img src="{{ player[5] }}" alt="Nationality Flag" class="flag-img">
+                        {% endif %}
+                        <span class="position-dot {% if player[2] == 'Goalkeeper' %}gk{% elif player[2] == 'Defence' %}def{% elif player[2] == 'Midfield' %}mid{% elif player[2] == 'Offence' %}att{% endif %}"></span>
+                        <a href="{{ url_for('user.profile_player', player_id=player[0]) }}" class="player-name">{{ player[1] }}</a>
+                    </div>
+                    <div class="player-stats">
+                        <div class="stat-box">
+                            <span class="stat-label">Goals</span>
+                            <span class="stat-value">{{ player[6] }}</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Assists</span>
+                            <span class="stat-value">{{ player[7] }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <nav aria-label="Page navigation" class="mt-3">
+        <ul class="pagination neon-pagination justify-content-center">
+            {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('user.user_players', page=1, league_id=request.args.get('league_id'), country_id=request.args.get('country_id'), team_id=request.args.get('team_id'), position=request.args.get('position')) }}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('user.user_players', page=page-1, league_id=request.args.get('league_id'), country_id=request.args.get('country_id'), team_id=request.args.get('team_id'), position=request.args.get('position')) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% for p in range(max(1, page-2), min(total_pages, page+2) + 1) %}
+                <li class="page-item {% if page == p %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('user.user_players', page=p, league_id=request.args.get('league_id'), country_id=request.args.get('country_id'), team_id=request.args.get('team_id'), position=request.args.get('position')) }}">{{ p }}</a>
+                </li>
+            {% endfor %}
+            {% if page < total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('user.user_players', page=page+1, league_id=request.args.get('league_id'), country_id=request.args.get('country_id'), team_id=request.args.get('team_id'), position=request.args.get('position')) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('user.user_players', page=total_pages, league_id=request.args.get('league_id'), country_id=request.args.get('country_id'), team_id=request.args.get('team_id'), position=request.args.get('position')) }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --accent-blue: #4361ee;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-red: #ff0055;
+    --neon-green: #00ff9d;
+    --neon-yellow: #ffdd00;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+}
+
+/* Section styling */
+.neon-section {
+    padding: 0;
+    background-color: transparent;
+    border-radius: 8px;
+    margin-top: 0;
+    width: 100%;
+}
+
+/* Title styling */
+.neon-title {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    position: relative;
+    display: inline-block;
+}
+
+.neon-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-red));
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--neon-blue);
+}
+
+/* Filter container */
+.filter-container {
+    margin-bottom: 1rem;
+}
+
+/* Filter form styling */
+.neon-form {
+    background-color: var(--secondary-dark);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) auto;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.neon-label {
+    color: var(--neon-blue);
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.neon-select {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    border: 1px solid var(--neon-blue);
+    border-radius: 4px;
+    padding: 0.4rem;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    height: 38px;
+}
+
+.neon-select:focus {
+    box-shadow: 0 0 0 2px rgba(0, 243, 255, 0.5);
+    border-color: var(--neon-blue);
+}
+
+.neon-button {
+    background-color: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.4rem 1.2rem;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px var(--neon-blue);
+    box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+    height: 38px;
+}
+
+.filter-btn {
+    width: 100%;
+    min-width: 80px;
+    font-size: 0.8rem;
+}
+
+.neon-button:hover {
+    background-color: var(--neon-blue);
+    color: var(--primary-dark);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+}
+
+/* Player list styling */
+.neon-player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+}
+
+.neon-player-item {
+    background-color: var(--secondary-dark);
+    border: 2px solid var(--neon-blue);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    width: 100%;
+    box-shadow: 0 0 8px var(--neon-blue), inset 0 0 2px var(--neon-blue);
+}
+
+.neon-player-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+}
+
+.player-content {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.player-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.team-logo {
+    height: 35px;
+    width: auto;
+    filter: drop-shadow(0 0 3px rgba(0, 243, 255, 0.8));
+}
+
+.flag-img {
+    width: 30px;
+    height: 20px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+.position-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.position-dot.gk {
+    background-color: var(--text-gray);
+    box-shadow: 0 0 5px var(--text-gray);
+}
+
+.position-dot.def {
+    background-color: var(--neon-blue);
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.position-dot.mid {
+    background-color: var(--neon-green);
+    box-shadow: 0 0 5px var(--neon-green);
+}
+
+.position-dot.att {
+    background-color: var(--neon-red);
+    box-shadow: 0 0 5px var(--neon-red);
+}
+
+.player-name {
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.player-name:hover {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+    text-decoration: none;
+}
+
+.player-stats {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--primary-dark);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    min-width: 80px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 5px rgba(0, 243, 255, 0.2);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin-bottom: 2px;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Pagination styling */
+.neon-pagination .page-link {
+    background-color: var(--secondary-dark);
+    color: var(--text-light);
+    border: 1px solid var(--neon-blue);
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    padding: 0.3rem 0.6rem;
+}
+
+.neon-pagination .page-item.active .page-link {
+    background-color: var(--neon-blue);
+    color: var(--primary-dark);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+.neon-pagination .page-link:hover {
+    background-color: var(--primary-dark);
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Player color variations based on position */
+.neon-player-item[data-position="Goalkeeper"] {
+    border-color: var(--text-gray);
+    box-shadow: 0 0 8px var(--text-gray), inset 0 0 2px var(--text-gray);
+}
+
+.neon-player-item[data-position="Defence"] {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 8px var(--neon-blue), inset 0 0 2px var(--neon-blue);
+}
+
+.neon-player-item[data-position="Midfield"] {
+    border-color: var(--neon-green);
+    box-shadow: 0 0 8px var(--neon-green), inset 0 0 2px var(--neon-green);
+}
+
+.neon-player-item[data-position="Offence"] {
+    border-color: var(--neon-red);
+    box-shadow: 0 0 8px var(--neon-red), inset 0 0 2px var(--neon-red);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .filter-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .player-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .player-stats {
+        align-self: stretch;
+        justify-content: space-around;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .neon-button {
+        margin-top: 0.5rem;
+    }
+}
+
+/* Section header styling */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.compare-btn {
+    background: rgba(0, 243, 255, 0.1);
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.compare-btn i {
+    font-size: 1rem;
+}
+
+.compare-btn:hover {
+    background: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+    transform: translateY(-2px);
+    color: var(--neon-blue);
+    text-decoration: none;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add position data attribute to player items
+    const playerItems = document.querySelectorAll('.neon-player-item');
+    playerItems.forEach(item => {
+        const positionDot = item.querySelector('.position-dot');
+        if (positionDot.classList.contains('gk')) {
+            item.setAttribute('data-position', 'Goalkeeper');
+        } else if (positionDot.classList.contains('def')) {
+            item.setAttribute('data-position', 'Defence');
+        } else if (positionDot.classList.contains('mid')) {
+            item.setAttribute('data-position', 'Midfield');
+        } else if (positionDot.classList.contains('att')) {
+            item.setAttribute('data-position', 'Offence');
+        }
+    });
+});
+</script>
+{% endblock %}

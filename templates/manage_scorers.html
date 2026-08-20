@@ -1,0 +1,415 @@
+{% extends "admin.html" %}
+{% block admin_content %}
+<div class="admin-header">
+    <h1 class="neon-title">Manage Scorers</h1>
+    <p class="subtitle">Add and manage player statistics in the league system</p>
+</div>
+
+<div class="admin-grid">
+    <div class="form-card">
+        <div class="card-header">
+            <i class="fas fa-plus-circle"></i>
+            <h3 id="form-title">Add Scorer Stats</h3>
+        </div>
+        <form action="{{ url_for('admin.manage_scorers') }}" method="POST" class="neon-form" id="scorerForm">
+            <input type="hidden" id="scorer_id" name="scorer_id">
+            
+            <div class="form-group">
+                <label for="player_id">Player</label>
+                <select class="neon-input" id="player_id" name="player_id" required>
+                    <option value="">Select a player</option>
+                    {% for player in players %}
+                    <option value="{{ player[0] }}">{{ player[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="season_id">Season</label>
+                <select class="neon-input" id="season_id" name="season_id" required>
+                    <option value="">Select a season</option>
+                    {% for season in seasons %}
+                    <option value="{{ season[0] }}">{{ season[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="league_id">League</label>
+                <select class="neon-input" id="league_id" name="league_id" required>
+                    <option value="">Select a league</option>
+                    {% for league in leagues %}
+                    <option value="{{ league[0] }}">{{ league[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="stats-grid">
+                <div class="form-group">
+                    <label for="goals">Goals</label>
+                    <input type="number" class="neon-input" id="goals" name="goals" min="0" value="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="assists">Assists</label>
+                    <input type="number" class="neon-input" id="assists" name="assists" min="0" value="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="penalties">Penalties</label>
+                    <input type="number" class="neon-input" id="penalties" name="penalties" min="0" value="0" required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="neon-button primary">Add Stats</button>
+                <button type="button" class="neon-button secondary" onclick="resetForm()">Reset</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <div class="card-header">
+            <i class="fas fa-list"></i>
+            <h3>Scorers List</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="neon-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Season</th>
+                        <th>League</th>
+                        <th>Stats</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scorer in scorers %}
+                    <tr>
+                        <td>
+                            <div class="player-name">{{ scorer[1] }}</div>
+                        </td>
+                        <td>
+                            <div class="season-name">{{ scorer[2] }}</div>
+                        </td>
+                        <td>
+                            <div class="league-name">{{ scorer[3] }}</div>
+                        </td>
+                        <td>
+                            <div class="stats-display">
+                                <span class="stat-item">
+                                    <i class="fas fa-futbol"></i>
+                                    <span class="stat-value">{{ scorer[4] }}</span>
+                                </span>
+                                <span class="stat-item">
+                                    <i class="fas fa-hands-helping"></i>
+                                    <span class="stat-value">{{ scorer[5] }}</span>
+                                </span>
+                                <span class="stat-item">
+                                    <i class="fas fa-bullseye"></i>
+                                    <span class="stat-value">{{ scorer[6] }}</span>
+                                </span>
+                            </div>
+                        </td>
+                        <td class="actions">
+                            <button class="neon-button delete" onclick="confirmDelete('{{ scorer[0] }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade neon-modal" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Scorer Stats</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete these scorer statistics? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <form action="{{ url_for('admin.manage_scorers') }}" method="POST" id="deleteForm">
+                    <input type="hidden" name="deleteEntityId" id="deleteEntityId">
+                    <button type="button" class="neon-button secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" name="delete" class="neon-button delete">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Form and Table Layout */
+.admin-grid {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* Card Styles */
+.form-card, .table-card {
+    background: var(--secondary-dark);
+    border-radius: 10px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+}
+
+.card-header {
+    padding: 1.2rem;
+    border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.card-header i {
+    color: var(--neon-blue);
+    font-size: 1.1rem;
+}
+
+.card-header h3 {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* Form Styles */
+.neon-form {
+    padding: 1.2rem;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-light);
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.neon-input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--neon-blue);
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-light);
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+/* Select Input Specific Styles */
+select.neon-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300f3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+select.neon-input option {
+    background-color: var(--secondary-dark);
+    color: var(--text-light);
+    padding: 0.6rem;
+}
+
+select.neon-input:focus {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+    outline: none;
+}
+
+.neon-input:hover, .neon-input:focus {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+    outline: none;
+}
+
+/* Firefox specific styles */
+@-moz-document url-prefix() {
+    select.neon-input {
+        color: var(--text-light);
+        background-color: var(--secondary-dark);
+    }
+    
+    select.neon-input option {
+        background-color: var(--secondary-dark);
+    }
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+/* Stats Display */
+.stats-display {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+    border: 1px solid var(--neon-blue);
+    font-size: 0.9rem;
+}
+
+.stat-item i {
+    color: var(--neon-blue);
+    font-size: 0.8rem;
+}
+
+.stat-value {
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+/* Table Styles */
+.neon-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.neon-table th,
+.neon-table td {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+}
+
+.neon-table th {
+    font-weight: 600;
+    text-align: left;
+    opacity: 0.8;
+}
+
+.neon-table tbody tr:hover {
+    background: rgba(0, 243, 255, 0.05);
+}
+
+/* Player, Season, League Names */
+.player-name, .season-name, .league-name {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Button Styles */
+.neon-button {
+    padding: 0.6rem 1.2rem;
+    border: 1px solid;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.neon-button.primary {
+    background: var(--neon-blue);
+    border-color: var(--neon-blue);
+    color: var(--primary-dark);
+}
+
+.neon-button.secondary {
+    background: transparent;
+    border-color: var(--neon-blue);
+    color: var(--neon-blue);
+}
+
+.neon-button.delete {
+    background: transparent;
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+    padding: 0.4rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-display {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .stat-item {
+        font-size: 0.85rem;
+    }
+
+    .neon-table th,
+    .neon-table td {
+        padding: 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .player-name, .season-name, .league-name {
+        max-width: 150px;
+        font-size: 0.85rem;
+    }
+}
+</style>
+
+<script>
+function confirmDelete(id) {
+    document.getElementById('deleteEntityId').value = id;
+    $('#deleteModal').modal('show');
+}
+
+function resetForm() {
+    document.getElementById('scorer_id').value = '';
+    document.getElementById('player_id').value = '';
+    document.getElementById('season_id').value = '';
+    document.getElementById('league_id').value = '';
+    document.getElementById('goals').value = '0';
+    document.getElementById('assists').value = '0';
+    document.getElementById('penalties').value = '0';
+    document.getElementById('form-title').innerText = 'Add Scorer Stats';
+}
+</script>
+{% endblock %}

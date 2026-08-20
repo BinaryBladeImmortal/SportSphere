@@ -1,0 +1,357 @@
+{% extends "user_dashboard.html" %}
+{% block user_content %}
+<div class="neon-section">
+    <div class="section-header">
+        <h2 class="neon-title">Team Profiles</h2>
+        <a href="{{ url_for('user.compare_teams') }}" class="compare-btn">
+            <i class="fas fa-chart-bar"></i> Compare Teams
+        </a>
+    </div>
+    
+    <div class="filter-container">
+        <form method="get" action="{{ url_for('user.user_teams') }}" class="neon-form">
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label for="league_id" class="neon-label">League</label>
+                    <select id="league_id" name="league_id" class="form-control neon-select">
+                        <option value="">All Leagues</option>
+                        {% for league in leagues %}
+                            <option value="{{ league[0] }}" {% if request.args.get('league_id') == str(league[0]) %}selected{% endif %}>{{ league[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="country_id" class="neon-label">Country</label>
+                    <select id="country_id" name="country_id" class="form-control neon-select">
+                        <option value="">All Countries</option>
+                        {% for country in countries %}
+                            <option value="{{ country[0] }}" {% if request.args.get('country_id') == str(country[0]) %}selected{% endif %}>{{ country[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <button type="submit" class="btn neon-button filter-btn">FILTER</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="neon-team-list">
+        {% for team in teams %}
+            <div class="neon-team-item">
+                <div class="team-content">
+                    {% if team[2] %}
+                        <img src="{{ team[2] }}" alt="{{ team[1] }} Logo" class="team-logo">
+                    {% endif %}
+                    <a href="{{ url_for('user.profile_team', team_id=team[0]) }}" class="team-name">{{ team[1] }}</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <nav aria-label="Page navigation" class="mt-3">
+        <ul class="pagination neon-pagination justify-content-center">
+            {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('user.user_teams', page=1, league_id=request.args.get('league_id'), country_id=request.args.get('country_id')) }}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('user.user_teams', page=page-1, league_id=request.args.get('league_id'), country_id=request.args.get('country_id')) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% for p in range(max(1, page-2), min(total_pages, page+2) + 1) %}
+                <li class="page-item {% if page == p %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('user.user_teams', page=p, league_id=request.args.get('league_id'), country_id=request.args.get('country_id')) }}">{{ p }}</a>
+                </li>
+            {% endfor %}
+            {% if page < total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('user.user_teams', page=page+1, league_id=request.args.get('league_id'), country_id=request.args.get('country_id')) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('user.user_teams', page=total_pages, league_id=request.args.get('league_id'), country_id=request.args.get('country_id')) }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --accent-blue: #4361ee;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-red: #ff0055;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+}
+
+/* Section styling */
+.neon-section {
+    padding: 0;
+    background-color: transparent;
+    border-radius: 8px;
+    margin-top: 0;
+    width: 100%;
+}
+
+/* Section header styling */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.compare-btn {
+    background: rgba(0, 243, 255, 0.1);
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.compare-btn i {
+    font-size: 1rem;
+}
+
+.compare-btn:hover {
+    background: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+    transform: translateY(-2px);
+    color: var(--neon-blue);
+    text-decoration: none;
+}
+
+/* Title styling */
+.neon-title {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    position: relative;
+    display: inline-block;
+}
+
+.neon-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-red));
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--neon-blue);
+}
+
+/* Filter container */
+.filter-container {
+    margin-bottom: 1rem;
+}
+
+/* Filter form styling */
+.neon-form {
+    background-color: var(--secondary-dark);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.neon-label {
+    color: var(--neon-blue);
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.neon-select {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    border: 1px solid var(--neon-blue);
+    border-radius: 4px;
+    padding: 0.4rem;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    height: 38px;
+}
+
+.neon-select:focus {
+    box-shadow: 0 0 0 2px rgba(0, 243, 255, 0.5);
+    border-color: var(--neon-blue);
+}
+
+.neon-button {
+    background-color: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.4rem 1.2rem;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px var(--neon-blue);
+    box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+    height: 38px;
+}
+
+.filter-btn {
+    width: 100%;
+    min-width: 80px;
+    font-size: 0.8rem;
+}
+
+.neon-button:hover {
+    background-color: var(--neon-blue);
+    color: var(--primary-dark);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+}
+
+/* Team list styling */
+.neon-team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+}
+
+.neon-team-item {
+    background-color: var(--secondary-dark);
+    border: 2px solid var(--neon-blue);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    width: 100%;
+    box-shadow: 0 0 8px var(--neon-blue), inset 0 0 2px var(--neon-blue);
+}
+
+.neon-team-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+}
+
+.team-content {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.team-logo {
+    height: 45px;
+    width: auto;
+    margin-right: 2rem;
+    filter: drop-shadow(0 0 3px rgba(0, 243, 255, 0.8));
+}
+
+.team-name {
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+    flex-grow: 1;
+}
+
+.team-name:hover {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+    text-decoration: none;
+}
+
+/* Pagination styling */
+.neon-pagination .page-link {
+    background-color: var(--secondary-dark);
+    color: var(--text-light);
+    border: 1px solid var(--neon-blue);
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    padding: 0.3rem 0.6rem;
+}
+
+.neon-pagination .page-item.active .page-link {
+    background-color: var(--neon-blue);
+    color: var(--primary-dark);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+.neon-pagination .page-link:hover {
+    background-color: var(--primary-dark);
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Loading effect for team items */
+.neon-team-item:nth-child(3n+1) {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 8px var(--neon-blue), inset 0 0 2px var(--neon-blue);
+}
+
+.neon-team-item:nth-child(3n+2) {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 8px var(--neon-purple), inset 0 0 2px var(--neon-purple);
+}
+
+.neon-team-item:nth-child(3n) {
+    border-color: var(--neon-red);
+    box-shadow: 0 0 8px var(--neon-red), inset 0 0 2px var(--neon-red);
+}
+
+.neon-team-item:nth-child(3n+1):hover {
+    box-shadow: 0 0 15px var(--neon-blue), inset 0 0 4px var(--neon-blue);
+}
+
+.neon-team-item:nth-child(3n+2):hover {
+    box-shadow: 0 0 15px var(--neon-purple), inset 0 0 4px var(--neon-purple);
+}
+
+.neon-team-item:nth-child(3n):hover {
+    box-shadow: 0 0 15px var(--neon-red), inset 0 0 4px var(--neon-red);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .neon-button {
+        margin-top: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

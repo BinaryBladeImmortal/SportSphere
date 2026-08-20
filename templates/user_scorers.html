@@ -1,0 +1,408 @@
+{% extends "user_dashboard.html" %}
+{% block user_content %}
+<div class="neon-section">
+    <h2 class="neon-title">Top Scorers</h2>
+    
+    <div class="filter-container">
+        <form method="get" action="{{ url_for('user.user_scorers') }}" class="neon-form">
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label for="league" class="neon-label">League</label>
+                    <select id="league" name="league_id" class="form-control neon-select">
+                <option value="">All Leagues</option>
+                {% for league in leagues %}
+                    <option value="{{ league[0] }}" {% if request.args.get('league_id') == str(league[0]) %}selected{% endif %}>{{ league[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+                <div class="filter-item">
+                    <label for="country" class="neon-label">Country</label>
+                    <select id="country" name="country_id" class="form-control neon-select">
+                <option value="">All Countries</option>
+                {% for country in countries %}
+                    <option value="{{ country[0] }}" {% if request.args.get('country_id') == str(country[0]) %}selected{% endif %}>{{ country[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+                <div class="filter-item">
+                    <label for="team" class="neon-label">Team</label>
+                    <select id="team" name="team_id" class="form-control neon-select">
+                <option value="">All Teams</option>
+                {% for team in teams %}
+                    <option value="{{ team[0] }}" {% if request.args.get('team_id') == str(team[0]) %}selected{% endif %}>{{ team[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+                <div class="filter-item">
+                    <button type="submit" class="btn neon-button filter-btn">FILTER</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="neon-scorers-list">
+    {% for scorer in scorers %}
+            <div class="neon-scorer-item">
+                <div class="scorer-content">
+                    <div class="scorer-info">
+                {% if scorer[5] %}
+                            <img src="{{ scorer[5] }}" alt="{{ scorer[1] }} Logo" class="team-logo">
+                {% endif %}
+                        <a href="{{ url_for('user.profile_player', player_id=scorer[0]) }}" class="scorer-name">
+                            <span class="name">{{ scorer[1] }}</span>
+                            <span class="team">{{ scorer[6] }}</span>
+                        </a>
+                    </div>
+                    <div class="scorer-stats">
+                        <div class="stat-badge goals">
+                            <span class="stat-value">{{ scorer[2] }}</span>
+                            <span class="stat-label">Goals</span>
+                        </div>
+                        <div class="stat-badge assists">
+                            <span class="stat-value">{{ scorer[3] }}</span>
+                            <span class="stat-label">Assists</span>
+                        </div>
+                        <div class="stat-badge penalties">
+                            <span class="stat-value">{{ scorer[4] }}</span>
+                            <span class="stat-label">Penalties</span>
+                        </div>
+                    </div>
+            </div>
+            </div>
+    {% endfor %}
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --accent-blue: #4361ee;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-red: #ff0055;
+    --neon-green: #00ff9d;
+    --neon-yellow: #ffdd00;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+    --goals-color: var(--neon-blue);
+    --assists-color: var(--neon-green);
+    --penalties-color: var(--neon-yellow);
+}
+
+/* Section styling */
+.neon-section {
+    padding: 0;
+    background-color: transparent;
+    border-radius: 8px;
+    margin-top: 0;
+    width: 100%;
+}
+
+/* Title styling - reduced shadow */
+.neon-title {
+    color: var(--text-light);
+    text-shadow: 0 0 3px var(--neon-blue), 0 0 5px var(--neon-blue);
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    position: relative;
+    display: inline-block;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.neon-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-red));
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Filter container */
+.filter-container {
+    margin-bottom: 1rem;
+}
+
+/* Filter form styling */
+.neon-form {
+    background-color: var(--secondary-dark);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) auto;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.neon-label {
+    color: var(--neon-blue);
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    text-shadow: none;
+}
+
+.neon-select {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    border: 1px solid var(--neon-blue);
+    border-radius: 4px;
+    padding: 0.4rem;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    height: 38px;
+}
+
+.neon-select:focus {
+    box-shadow: 0 0 0 2px rgba(0, 243, 255, 0.5);
+    border-color: var(--neon-blue);
+}
+
+.neon-button {
+    background-color: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.4rem 1.2rem;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 2px var(--neon-blue);
+    box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+    height: 38px;
+}
+
+.filter-btn {
+    width: 100%;
+    min-width: 80px;
+    font-size: 0.8rem;
+}
+
+.neon-button:hover {
+    background-color: var(--neon-blue);
+    color: var(--primary-dark);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+    text-shadow: none;
+}
+
+/* Scorers list styling */
+.neon-scorers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+}
+
+.neon-scorer-item {
+    background-color: var(--secondary-dark);
+    border: 2px solid var(--neon-blue);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    width: 100%;
+    box-shadow: 0 0 8px var(--neon-blue), inset 0 0 2px var(--neon-blue);
+}
+
+.neon-scorer-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 15px var(--neon-blue);
+}
+
+.scorer-content {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.scorer-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.team-logo {
+    height: 40px;
+    width: auto;
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+}
+
+.scorer-name {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+}
+
+.scorer-name .name {
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.scorer-name .team {
+    color: var(--text-gray);
+    font-size: 0.85rem;
+}
+
+.scorer-name:hover .name {
+    color: var(--neon-blue);
+    text-shadow: 0 0 2px var(--neon-blue);
+    text-decoration: none;
+}
+
+.scorer-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    min-width: 70px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.stat-badge.goals {
+    border: 1px solid var(--goals-color);
+    box-shadow: 0 0 5px var(--goals-color);
+}
+
+.stat-badge.assists {
+    border: 1px solid var(--assists-color);
+    box-shadow: 0 0 5px var(--assists-color);
+}
+
+.stat-badge.penalties {
+    border: 1px solid var(--penalties-color);
+    box-shadow: 0 0 5px var(--penalties-color);
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.stat-badge.goals .stat-value {
+    color: var(--text-light);
+    text-shadow: 0 0 2px var(--goals-color);
+    background-color: rgba(0, 243, 255, 0.1);
+    padding: 0 5px;
+    border-radius: 4px;
+}
+
+.stat-badge.assists .stat-value {
+    color: var(--text-light);
+    text-shadow: 0 0 2px var(--assists-color);
+    background-color: rgba(0, 255, 157, 0.1);
+    padding: 0 5px;
+    border-radius: 4px;
+}
+
+.stat-badge.penalties .stat-value {
+    color: var(--text-light);
+    text-shadow: 0 0 2px var(--penalties-color);
+    background-color: rgba(255, 221, 0, 0.1);
+    padding: 0 5px;
+    border-radius: 4px;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-gray);
+    margin-top: 0.2rem;
+}
+
+/* Ranking system styling - makes every third player have a special border */
+.neon-scorer-item:nth-child(1) {
+    border-color: gold;
+    box-shadow: 0 0 10px gold, inset 0 0 3px gold;
+}
+
+.neon-scorer-item:nth-child(2) {
+    border-color: silver;
+    box-shadow: 0 0 8px silver, inset 0 0 2px silver;
+}
+
+.neon-scorer-item:nth-child(3) {
+    border-color: #cd7f32; /* bronze */
+    box-shadow: 0 0 8px #cd7f32, inset 0 0 2px #cd7f32;
+}
+
+.neon-scorer-item:nth-child(1):hover {
+    box-shadow: 0 0 15px gold;
+}
+
+.neon-scorer-item:nth-child(2):hover {
+    box-shadow: 0 0 15px silver;
+}
+
+.neon-scorer-item:nth-child(3):hover {
+    box-shadow: 0 0 15px #cd7f32;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .filter-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .scorer-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .scorer-stats {
+        align-self: stretch;
+        justify-content: space-around;
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .neon-button {
+        margin-top: 0.5rem;
+    }
+    
+    .scorer-stats {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .stat-badge {
+        flex: 1;
+        min-width: 60px;
+    }
+}
+</style>
+{% endblock %}

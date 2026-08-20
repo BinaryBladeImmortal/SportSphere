@@ -1,0 +1,499 @@
+{% extends "layout.html" %}
+{% block title %}User Dashboard - Sports League Management{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">User Dashboard</h1>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action active"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="#" class="list-group-item list-group-item-action"><i class="fas fa-users"></i> Teams</a>
+                <a href="#" class="list-group-item list-group-item-action"><i class="fas fa-running"></i> Players</a>
+                <a href="#" class="list-group-item list-group-item-action"><i class="fas fa-trophy"></i> Leagues</a>
+                <a href="#" class="list-group-item list-group-item-action"><i class="fas fa-futbol"></i> Matches</a>
+                <a href="#" class="list-group-item list-group-item-action"><i class="fas fa-chart-line"></i> Statistics</a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Football Field Card -->
+                <div class="field-card mb-4">
+                    <div class="field-container">
+                        <div class="football-field">
+                            <!-- Field Markings -->
+                            <div class="center-circle"></div>
+                            <div class="center-line"></div>
+                            <div class="penalty-area left"></div>
+                            <div class="penalty-area right"></div>
+                            <div class="goal left"></div>
+                            <div class="goal right"></div>
+                            
+                            <!-- Stats Overlay -->
+                            <div class="stat-overlay left">
+                                <h3>{{ teams_count }}</h3>
+                                <p>Teams</p>
+                            </div>
+                            <div class="stat-overlay center">
+                                <h3>{{ players_count }}</h3>
+                                <p>Players</p>
+                            </div>
+                            <div class="stat-overlay right">
+                                <h3>{{ upcoming_matches }}</h3>
+                                <p>Matches</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h4>Total Teams</h4>
+                                <h2>{{ teams_count }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-running"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h4>Active Players</h4>
+                                <h2>{{ players_count }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-futbol"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h4>Upcoming Matches</h4>
+                                <h2>{{ upcoming_matches }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --accent-blue: #4361ee;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-red: #ff0055;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+}
+
+/* Override any potential white backgrounds from layout.html */
+body {
+    background-color: var(--primary-dark) !important;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.dashboard-wrapper {
+    background-color: var(--primary-dark);
+    min-height: 100vh;
+    width: 100%;
+}
+
+.dashboard-container {
+    display: block;
+}
+
+.main-content {
+    padding: 0;
+}
+
+.field-card {
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.field-container {
+    aspect-ratio: 16/9;
+    max-height: 400px;
+}
+
+.football-field {
+    background-color: #2c4a7c;
+    border-radius: 8px;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 15px var(--neon-blue),
+                inset 0 0 10px var(--neon-red);
+    animation: fieldGlow 3s ease-in-out infinite alternate;
+}
+
+.center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    border: 2px solid var(--neon-blue);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.center-line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 100%;
+    width: 2px;
+    background-color: var(--neon-blue);
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.penalty-area {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 150px;
+    height: 60%;
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.penalty-area.left {
+    left: 0;
+}
+
+.penalty-area.right {
+    right: 0;
+}
+
+.goal {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 30%;
+    background-color: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+.goal.left {
+    left: 0;
+}
+
+.goal.right {
+    right: 0;
+}
+
+.stat-overlay {
+    position: absolute;
+    text-align: center;
+    background: rgba(67, 97, 238, 0.1);
+    backdrop-filter: blur(8px);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    animation: overlayGlow 2s ease-in-out infinite alternate;
+}
+
+.stat-overlay.left {
+    left: 20%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.stat-overlay.center {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.stat-overlay.right {
+    right: 20%;
+    top: 50%;
+    transform: translate(50%, -50%);
+}
+
+.stat-overlay h3 {
+    font-size: 2rem;
+    margin: 0;
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px var(--neon-blue);
+}
+
+.stat-overlay p {
+    margin: 0;
+    color: rgba(255,255,255,0.8);
+}
+
+.stat-card {
+    height: 100%;
+    margin-bottom: 1rem;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--neon-blue), var(--accent-blue));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+    animation: iconGlow 2s ease-in-out infinite alternate;
+}
+
+.stat-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-info h4 {
+    color: var(--text-gray);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.stat-info h2 {
+    margin: 0.5rem 0 0 0;
+    font-size: 1.8rem;
+    color: var(--text-light);
+}
+
+/* Animations */
+@keyframes neonPulse {
+    from {
+        text-shadow: 0 0 5px var(--neon-blue),
+                     0 0 10px var(--neon-blue),
+                     0 0 15px var(--neon-blue);
+    }
+    to {
+        text-shadow: 0 0 10px var(--neon-blue),
+                     0 0 20px var(--neon-blue),
+                     0 0 30px var(--neon-blue);
+    }
+}
+
+@keyframes fieldGlow {
+    from {
+        box-shadow: 0 0 10px var(--neon-blue),
+                    inset 0 0 5px var(--neon-red);
+    }
+    to {
+        box-shadow: 0 0 20px var(--neon-blue),
+                    inset 0 0 15px var(--neon-red);
+    }
+}
+
+@keyframes iconGlow {
+    from {
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+    }
+    to {
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
+    }
+}
+
+@keyframes overlayGlow {
+    from {
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+    }
+    to {
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+    }
+}
+
+/* Smooth Transitions */
+* {
+    transition: all 0.3s ease;
+}
+
+/* Hover Effects */
+.stat-icon:hover {
+    transform: scale(1.1);
+}
+
+.stat-overlay:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+}
+
+/* Additional Neon Text Effect Class */
+.neon-text {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue),
+                 0 0 10px var(--neon-blue),
+                 0 0 15px var(--neon-blue);
+}
+
+/* Gradient Border Effect */
+.gradient-border {
+    position: relative;
+    background: var(--secondary-dark);
+    padding: 3px;
+    border-radius: 16px;
+}
+
+.gradient-border::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+    border-radius: 16px;
+    z-index: -1;
+    animation: borderGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes borderGlow {
+    from {
+        opacity: 0.5;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.stat-card:nth-child(1) {
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2),
+                inset 0 0 5px rgba(0, 243, 255, 0.1);
+}
+
+.stat-card:nth-child(2) {
+    border: 1px solid var(--neon-purple);
+    box-shadow: 0 0 10px rgba(188, 19, 254, 0.2),
+                inset 0 0 5px rgba(188, 19, 254, 0.1);
+}
+
+.stat-card:nth-child(3) {
+    border: 1px solid var(--neon-red);
+    box-shadow: 0 0 10px rgba(255, 0, 85, 0.2),
+                inset 0 0 5px rgba(255, 0, 85, 0.1);
+}
+
+.stat-card:nth-child(1):hover {
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.4),
+                inset 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+.stat-card:nth-child(2):hover {
+    box-shadow: 0 0 20px rgba(188, 19, 254, 0.4),
+                inset 0 0 10px rgba(188, 19, 254, 0.2);
+}
+
+.stat-card:nth-child(3):hover {
+    box-shadow: 0 0 20px rgba(255, 0, 85, 0.4),
+                inset 0 0 10px rgba(255, 0, 85, 0.2);
+}
+
+.stat-icon:nth-child(1) {
+    background: linear-gradient(135deg, var(--neon-blue), var(--accent-blue));
+}
+
+.stat-icon:nth-child(2) {
+    background: linear-gradient(135deg, var(--neon-purple), var(--accent-blue));
+}
+
+.stat-icon:nth-child(3) {
+    background: linear-gradient(135deg, var(--neon-red), var(--neon-purple));
+}
+
+/* Update animations */
+@keyframes redPulse {
+    from {
+        text-shadow: 0 0 5px var(--neon-red),
+                     0 0 10px var(--neon-red),
+                     0 0 15px var(--neon-red);
+    }
+    to {
+        text-shadow: 0 0 10px var(--neon-red),
+                     0 0 20px var(--neon-red),
+                     0 0 30px var(--neon-red);
+    }
+}
+
+/* Update list-group styling to match neon theme */
+.list-group-item {
+    background-color: var(--secondary-dark);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    transition: all 0.3s ease;
+}
+
+.list-group-item:hover,
+.list-group-item.active {
+    background-color: var(--secondary-dark);
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue),
+                 0 0 10px var(--neon-blue);
+    box-shadow: 0 0 5px var(--neon-blue),
+                inset 0 0 5px var(--neon-blue);
+    border: 1px solid var(--neon-blue);
+}
+
+.list-group-item i {
+    margin-right: 0.5rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add mousemove effect for stat cards
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.addEventListener('mousemove', function(e) {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            card.style.setProperty('--x', `${x}px`);
+            card.style.setProperty('--y', `${y}px`);
+        });
+    });
+
+    // Add pulsing effect to numbers with different colors
+    document.querySelectorAll('.stat-overlay h3').forEach((number, index) => {
+        const colors = [
+            'var(--neon-blue)',
+            'var(--neon-purple)',
+            'var(--neon-red)'
+        ];
+        
+        setInterval(() => {
+            const intensity = 10 + Math.random() * 10;
+            number.style.textShadow = `0 0 ${intensity}px ${colors[index]}`;
+            number.style.color = colors[index];
+        }, 100);
+    });
+
+    // Add color cycling effect to the football field
+    const field = document.querySelector('.football-field');
+    let hue = 0;
+    
+    setInterval(() => {
+        hue = (hue + 1) % 360;
+        field.style.borderColor = `hsl(${hue}, 100%, 60%)`;
+    }, 50);
+});
+</script>
+{% endblock %} 

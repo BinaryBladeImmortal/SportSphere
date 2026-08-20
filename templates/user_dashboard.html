@@ -1,0 +1,510 @@
+{% extends "layout.html" %}
+{% block title %}User Dashboard - Sports League Management{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>User Dashboard</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group neon-sidebar">
+                <a href="{{ url_for('user.user_dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'user.user_dashboard' %}active{% endif %}"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="{{ url_for('user.user_teams') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'user.user_teams' %}active{% endif %}"><i class="fas fa-users"></i> Teams</a>
+                <a href="{{ url_for('user.user_players') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'user.user_players' %}active{% endif %}"><i class="fas fa-running"></i> Players</a>
+                <a href="{{ url_for('user.user_leagues') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'user.user_leagues' %}active{% endif %}"><i class="fas fa-trophy"></i> Leagues</a>
+                <a href="{{ url_for('user.user_matches') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'user.user_matches' %}active{% endif %}"><i class="fas fa-futbol"></i> Matches</a>
+                <a href="{{ url_for('user.user_scorers') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'user.user_scorers' %}active{% endif %}"><i class="fas fa-chart-line"></i> Top Scorers</a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            {% block user_content %}
+            <!-- Field Visualization -->
+            <div class="field-card">
+                <div class="field-container">
+                    <div class="football-field">
+                        <!-- Field Markings -->
+                        <div class="center-circle"></div>
+                        <div class="center-line"></div>
+                        <div class="penalty-area left"></div>
+                        <div class="penalty-area right"></div>
+                        <div class="goal left"></div>
+                        <div class="goal right"></div>
+                        
+                        <!-- Stats Overlay -->
+                        <div class="stat-overlay left">
+                            <p>Teams</p>
+                        </div>
+                        <div class="stat-overlay center">
+                            <p>Players</p>
+                        </div>
+                        <div class="stat-overlay right">
+                            <p>Matches</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card blue-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Total Teams</h4>
+                        <h2>{{ teams_count }}</h2>
+                    </div>
+                </div>
+                <div class="stat-card purple-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Active Players</h4>
+                        <h2>{{ players_count }}</h2>
+                    </div>
+                </div>
+                <div class="stat-card red-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-futbol"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Upcoming Matches</h4>
+                        <h2>{{ upcoming_matches }}</h2>
+                    </div>
+                </div>
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --accent-blue: #4361ee;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-red: #ff0055;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+}
+
+/* Dashboard header styling */
+.dashboard-header {
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+}
+
+.dashboard-header h1 {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue),
+                 0 0 10px var(--neon-blue);
+    margin: 0;
+    padding-left: 1rem;
+    font-size: 2rem;
+}
+
+/* Neon sidebar styling */
+.neon-sidebar {
+    background-color: var(--primary-dark);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.neon-sidebar .list-group-item {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    border: 1px solid var(--neon-blue);
+    border-radius: 0;
+    margin-bottom: 0;
+    transition: all 0.3s ease;
+}
+
+.neon-sidebar .list-group-item:first-child {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.neon-sidebar .list-group-item:last-child {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.neon-sidebar .list-group-item i {
+    margin-right: 10px;
+    color: var(--neon-blue);
+}
+
+.neon-sidebar .list-group-item:hover,
+.neon-sidebar .list-group-item.active {
+    background-color: var(--secondary-dark);
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue),
+                 0 0 10px var(--neon-blue);
+    box-shadow: 0 0 5px var(--neon-blue),
+                inset 0 0 5px var(--neon-blue);
+    border: 1px solid var(--neon-blue);
+}
+
+/* Sidebar divider and header */
+.sidebar-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--neon-blue), transparent);
+    margin: 15px 10px;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.sidebar-header {
+    color: var(--neon-purple);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0 15px 10px;
+    font-weight: bold;
+    text-shadow: 0 0 5px var(--neon-purple);
+}
+
+/* Football field styles */
+.field-card {
+    background-color: var(--primary-dark);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue);
+    margin: 0 auto 1.5rem;
+    width: 100%;
+    max-width: 800px;
+}
+
+.field-container {
+    aspect-ratio: 16/9;
+    max-height: 300px;
+    position: relative;
+    width: 100%;
+}
+
+.football-field {
+    background-color: #2c4a7c;
+    border-radius: 8px;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 15px var(--neon-blue),
+                inset 0 0 10px var(--neon-red);
+    animation: fieldGlow 3s ease-in-out infinite alternate;
+}
+
+.center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    border: 2px solid var(--neon-blue);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.center-line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 100%;
+    width: 2px;
+    background-color: var(--neon-blue);
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.penalty-area {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 150px;
+    height: 60%;
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.penalty-area.left {
+    left: 0;
+}
+
+.penalty-area.right {
+    right: 0;
+}
+
+.goal {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 30%;
+    background-color: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+.goal.left {
+    left: 0;
+}
+
+.goal.right {
+    right: 0;
+}
+
+.stat-overlay {
+    position: absolute;
+    text-align: center;
+    background: rgba(67, 97, 238, 0.1);
+    backdrop-filter: blur(8px);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    animation: overlayGlow 2s ease-in-out infinite alternate;
+    transition: transform 0.3s ease-in-out;
+}
+
+.stat-overlay.left {
+    left: 23%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.stat-overlay.left:hover {
+    transform: translate(-70%, -50%);
+}
+
+.stat-overlay.center {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.stat-overlay.center:hover {
+    animation: moveUpDown 1s ease-in-out infinite;
+}
+
+.stat-overlay.right {
+    right: 23%;
+    top: 50%;
+    transform: translate(50%, -50%);
+}
+
+.stat-overlay.right:hover {
+    transform: translate(70%, -50%);
+}
+
+.stat-overlay p {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue),
+                 0 0 10px var(--neon-blue);
+}
+
+/* Stats Grid Styles */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background-color: var(--secondary-dark);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background-color: var(--primary-dark);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+.stat-icon i {
+    font-size: 1.5rem;
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+.stat-info h4 {
+    color: var(--text-gray);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.stat-info h2 {
+    margin: 0.5rem 0 0 0;
+    font-size: 1.8rem;
+    color: var(--text-light);
+    text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+}
+
+/* Animations */
+@keyframes fieldGlow {
+    from {
+        box-shadow: 0 0 10px var(--neon-blue),
+                    inset 0 0 5px var(--neon-red);
+    }
+    to {
+        box-shadow: 0 0 20px var(--neon-blue),
+                    inset 0 0 15px var(--neon-red);
+    }
+}
+
+@keyframes moveUpDown {
+    0%, 100% {
+        transform: translate(-50%, -50%);
+    }
+    50% {
+        transform: translate(-50%, -70%);
+    }
+}
+
+@keyframes overlayGlow {
+    from {
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+    }
+    to {
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+    }
+}
+
+/* Override the container to have a darker background */
+.container {
+    background-color: var(--primary-dark);
+}
+
+.row {
+    background-color: var(--primary-dark);
+}
+
+/* Style the page title with neon effect */
+h1.mt-4 {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue),
+                 0 0 10px var(--neon-blue);
+    margin-bottom: 1.5rem;
+}
+
+/* Add neon border to content div */
+.col-md-9 {
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Blue card - for Teams */
+.blue-card .stat-icon i {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+.blue-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 20px var(--neon-blue);
+}
+
+.blue-card:hover .stat-icon {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 15px var(--neon-blue);
+}
+
+.blue-card:hover .stat-info h2 {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Purple card - for Players */
+.purple-card .stat-icon i {
+    color: var(--neon-purple);
+    text-shadow: 0 0 5px var(--neon-purple);
+}
+
+.purple-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 20px var(--neon-purple);
+}
+
+.purple-card:hover .stat-icon {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 15px var(--neon-purple);
+}
+
+.purple-card:hover .stat-info h2 {
+    color: var(--neon-purple);
+    text-shadow: 0 0 5px var(--neon-purple);
+}
+
+/* Red card - for Matches */
+.red-card .stat-icon i {
+    color: var(--neon-red);
+    text-shadow: 0 0 5px var(--neon-red);
+}
+
+.red-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--neon-red);
+    box-shadow: 0 0 20px var(--neon-red);
+}
+
+.red-card:hover .stat-icon {
+    border-color: var(--neon-red);
+    box-shadow: 0 0 15px var(--neon-red);
+}
+
+.red-card:hover .stat-info h2 {
+    color: var(--neon-red);
+    text-shadow: 0 0 5px var(--neon-red);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add color cycling effect to the football field
+    const field = document.querySelector('.football-field');
+    if (field) {
+        let hue = 180; // Start with blue-ish
+        
+        setInterval(() => {
+            field.style.borderColor = `hsl(${hue}, 100%, 60%)`;
+            hue = (hue + 1) % 360;
+        }, 100);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+<div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+        <li class="nav-item{% if request.path == '/dashboard' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('user_bp.dashboard') }}">Dashboard</a>
+        </li>
+        <li class="nav-item{% if request.path == '/scorers' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('user_bp.scorers') }}">Top Scorers</a>
+        </li>
+        <li class="nav-item{% if request.path == '/fixtures' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('user_bp.fixtures') }}">Fixtures</a>
+        </li>
+        <li class="nav-item{% if request.path == '/isl_stats' %} active{% endif %}">
+            <a class="nav-link" href="{{ url_for('user_bp.isl_stats') }}">ISL Stats</a>
+        </li>
+    </ul>
+</div> 

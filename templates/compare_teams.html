@@ -1,0 +1,821 @@
+{% extends "user_dashboard.html" %}
+{% block user_content %}
+<!-- Include Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="neon-section">
+    <h2 class="neon-title">Team Comparison Tool</h2>
+    
+    <!-- Team Selection Form -->
+    <div class="comparison-form">
+        <form method="GET" action="{{ url_for('user.compare_teams') }}" class="neon-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="team1_id" class="neon-label">Team 1</label>
+                    <select id="team1_id" name="team1_id" class="neon-select" required>
+                        <option value="">-- Select Team 1 --</option>
+                        {% for team in all_teams %}
+                            <option value="{{ team[0] }}" {% if team1 and team1[0] == team[0] %}selected{% endif %}>
+                                {{ team[1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="team2_id" class="neon-label">Team 2</label>
+                    <select id="team2_id" name="team2_id" class="neon-select" required>
+                        <option value="">-- Select Team 2 --</option>
+                        {% for team in all_teams %}
+                            <option value="{{ team[0] }}" {% if team2 and team2[0] == team[0] %}selected{% endif %}>
+                                {{ team[1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-submit">
+                <button type="submit" class="neon-button">Compare Teams</button>
+            </div>
+        </form>
+    </div>
+    
+    {% if team1 and team2 %}
+    <!-- Comparison Content -->
+    <div class="comparison-content">
+        <div class="comparison-header">
+            <div class="team-card">
+                <div class="team-logo-container">
+                    {% if team1[6] %}
+                        <img src="{{ team1[6] }}" alt="{{ team1[1] }}'s Logo" class="team-logo">
+                    {% else %}
+                        <img src="/static/images/default_team.png" alt="Default Team Logo" class="team-logo">
+                    {% endif %}
+                </div>
+                <h3 class="team-name">{{ team1[1] }}</h3>
+                <div class="team-league">{{ team1[5] }}</div>
+                <div class="team-founded">Est. {{ team1[2] }}</div>
+                <div class="team-coach">
+                    {% if team1[7] %}
+                        <img src="{{ team1[7] }}" alt="Coach Flag" class="coach-flag">
+                    {% endif %}
+                    <span>Coach: {{ team1[4] }}</span>
+                </div>
+                <div class="team-stadium">Stadium: {{ team1[3] }}</div>
+            </div>
+            
+            <div class="comparison-vs">VS</div>
+            
+            <div class="team-card">
+                <div class="team-logo-container">
+                    {% if team2[6] %}
+                        <img src="{{ team2[6] }}" alt="{{ team2[1] }}'s Logo" class="team-logo">
+                    {% else %}
+                        <img src="/static/images/default_team.png" alt="Default Team Logo" class="team-logo">
+                    {% endif %}
+                </div>
+                <h3 class="team-name">{{ team2[1] }}</h3>
+                <div class="team-league">{{ team2[5] }}</div>
+                <div class="team-founded">Est. {{ team2[2] }}</div>
+                <div class="team-coach">
+                    {% if team2[7] %}
+                        <img src="{{ team2[7] }}" alt="Coach Flag" class="coach-flag">
+                    {% endif %}
+                    <span>Coach: {{ team2[4] }}</span>
+                </div>
+                <div class="team-stadium">Stadium: {{ team2[3] }}</div>
+            </div>
+        </div>
+        
+        <!-- Stats Comparison -->
+        <div class="stats-section">
+            <h3 class="section-title">Team Performance Comparison</h3>
+            
+            <div class="stats-charts">
+                <div class="chart-container">
+                    <h4 class="chart-title">Match Results</h4>
+                    <canvas id="resultsChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h4 class="chart-title">Goals</h4>
+                    <canvas id="goalsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Team Players -->
+        <div class="players-section">
+            <h3 class="section-title">Key Players Comparison</h3>
+            
+            <div class="players-grid">
+                <div class="team-players">
+                    <h4 class="team-subtitle">{{ team1[1] }} Key Players</h4>
+                    
+                    <div class="player-list">
+                        {% if team1_players %}
+                            {% for player in team1_players[:5] %}
+                                <div class="player-item">
+                                    <div class="player-position-indicator {% if player[2] == 'Goalkeeper' %}gk{% elif player[2] == 'Defender' or player[2] == 'Defence' %}def{% elif player[2] == 'Midfielder' or player[2] == 'Midfield' %}mid{% elif player[2] == 'Forward' or player[2] == 'Offence' %}fwd{% endif %}"></div>
+                                    <div class="player-details">
+                                        <div class="player-name">{{ player[1] }}</div>
+                                        <div class="player-position">{{ player[2] }}</div>
+                                    </div>
+                                    <div class="player-stats">
+                                        <div class="player-stat">
+                                            <span class="stat-label">G</span>
+                                            <span class="stat-value">{{ player[3] or 0 }}</span>
+                                        </div>
+                                        <div class="player-stat">
+                                            <span class="stat-label">A</span>
+                                            <span class="stat-value">{{ player[4] or 0 }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-data">No player data available</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="team-players">
+                    <h4 class="team-subtitle">{{ team2[1] }} Key Players</h4>
+                    
+                    <div class="player-list">
+                        {% if team2_players %}
+                            {% for player in team2_players[:5] %}
+                                <div class="player-item">
+                                    <div class="player-position-indicator {% if player[2] == 'Goalkeeper' %}gk{% elif player[2] == 'Defender' or player[2] == 'Defence' %}def{% elif player[2] == 'Midfielder' or player[2] == 'Midfield' %}mid{% elif player[2] == 'Forward' or player[2] == 'Offence' %}fwd{% endif %}"></div>
+                                    <div class="player-details">
+                                        <div class="player-name">{{ player[1] }}</div>
+                                        <div class="player-position">{{ player[2] }}</div>
+                                    </div>
+                                    <div class="player-stats">
+                                        <div class="player-stat">
+                                            <span class="stat-label">G</span>
+                                            <span class="stat-value">{{ player[3] or 0 }}</span>
+                                        </div>
+                                        <div class="player-stat">
+                                            <span class="stat-label">A</span>
+                                            <span class="stat-value">{{ player[4] or 0 }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-data">No player data available</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Head to Head -->
+        <div class="h2h-section">
+            <h3 class="section-title">Head to Head</h3>
+            
+            <div class="h2h-stats">
+                <div class="h2h-card">
+                    <div class="h2h-title">Recent Head-to-Head Matches</div>
+                    <div class="match-history">
+                        {% if h2h_matches %}
+                            {% for match in h2h_matches %}
+                                {% if match[2] is not none and match[3] is not none %}
+                                    {% set team1_won = (match[4] == team1[1] and match[2] > match[3]) or (match[5] == team1[1] and match[3] > match[2]) %}
+                                    {% set team2_won = (match[4] == team2[1] and match[2] > match[3]) or (match[5] == team2[1] and match[3] > match[2]) %}
+                                    {% set is_draw = match[2] == match[3] %}
+                                    <div class="match-result {% if team1_won %}win{% elif team2_won %}loss{% else %}draw{% endif %}">
+                                        <div class="match-teams">{{ match[4] }} vs {{ match[5] }}</div>
+                                        <div class="match-score">{{ match[2] }} - {{ match[3] }}</div>
+                                        <div class="match-date">{{ match[1].strftime('%d %b %Y') if match[1] is not none else 'Date unknown' }}</div>
+                                    </div>
+                                {% else %}
+                                    <div class="match-result">
+                                        <div class="match-teams">{{ match[4] }} vs {{ match[5] }}</div>
+                                        <div class="match-score">Match not played yet</div>
+                                        <div class="match-date">{{ match[1].strftime('%d %b %Y') if match[1] is not none else 'Date unknown' }}</div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-data">No head-to-head matches available</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="h2h-summary-cards">
+                    <div class="summary-card">
+                        <div class="summary-value">{{ team1_wins }}</div>
+                        <div class="summary-label">{{ team1[1] }} Wins</div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-value">{{ draws }}</div>
+                        <div class="summary-label">Draws</div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-value">{{ team2_wins }}</div>
+                        <div class="summary-label">{{ team2[1] }} Wins</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-green: #00ff9d;
+    --neon-red: #ff0055;
+    --neon-yellow: #ffdd00;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+    --gk-color: #ffdd00;
+    --def-color: #00f3ff;
+    --mid-color: #00ff9d;
+    --fwd-color: #ff0055;
+}
+
+/* Form Styling */
+.comparison-form {
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.neon-label {
+    display: block;
+    color: var(--neon-blue);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.neon-select {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 6px;
+    background-color: var(--primary-dark);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%2300f3ff' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.neon-select:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+}
+
+/* Styling for dropdown options */
+.neon-select option {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    padding: 10px;
+}
+
+.form-submit {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.neon-button {
+    background: rgba(0, 243, 255, 0.1);
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.8rem 2rem;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.neon-button:hover {
+    background: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Comparison Content */
+.comparison-content {
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+}
+
+.comparison-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.team-card {
+    flex: 1;
+    max-width: 40%;
+    text-align: center;
+    padding: 1.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 243, 255, 0.2);
+}
+
+.team-logo-container {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1rem;
+}
+
+.team-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.team-name {
+    color: var(--text-light);
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.team-league, .team-founded, .team-coach, .team-stadium {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.team-coach {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.coach-flag {
+    width: 20px;
+    height: 15px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+.comparison-vs {
+    color: var(--neon-purple);
+    font-size: 2rem;
+    font-weight: bold;
+    text-shadow: 0 0 10px var(--neon-purple);
+}
+
+/* Stats Section */
+.stats-section, .players-section, .h2h-section {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-title {
+    color: var(--text-light);
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background: var(--neon-blue);
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.stats-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.chart-container {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    height: 300px;
+}
+
+.chart-title {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Players Section */
+.players-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.team-subtitle {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.player-list {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.player-item {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-item:last-child {
+    border-bottom: none;
+}
+
+.player-position-indicator {
+    width: 8px;
+    height: 35px;
+    border-radius: 4px;
+    margin-right: 1rem;
+}
+
+.player-position-indicator.gk {
+    background-color: var(--gk-color);
+    box-shadow: 0 0 5px var(--gk-color);
+}
+
+.player-position-indicator.def {
+    background-color: var(--def-color);
+    box-shadow: 0 0 5px var(--def-color);
+}
+
+.player-position-indicator.mid {
+    background-color: var(--mid-color);
+    box-shadow: 0 0 5px var(--mid-color);
+}
+
+.player-position-indicator.fwd {
+    background-color: var(--fwd-color);
+    box-shadow: 0 0 5px var(--fwd-color);
+}
+
+.player-details {
+    flex: 1;
+}
+
+.player-name {
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.player-position {
+    color: var(--text-gray);
+    font-size: 0.8rem;
+}
+
+.player-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.player-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 40px;
+}
+
+.stat-label {
+    color: var(--text-gray);
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+}
+
+.stat-value {
+    color: var(--text-light);
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.no-data {
+    color: var(--text-gray);
+    text-align: center;
+    padding: 2rem 0;
+    font-style: italic;
+}
+
+/* Head to Head Section */
+.h2h-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.h2h-card {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.h2h-title {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.match-history {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.match-result {
+    padding: 0.8rem;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+}
+
+.match-result.win {
+    background-color: rgba(0, 255, 157, 0.1);
+    border-left: 3px solid var(--neon-green);
+}
+
+.match-result.loss {
+    background-color: rgba(255, 0, 85, 0.1);
+    border-left: 3px solid var(--neon-red);
+}
+
+.match-result.draw {
+    background-color: rgba(255, 221, 0, 0.1);
+    border-left: 3px solid var(--neon-yellow);
+}
+
+.match-teams {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+}
+
+.match-score {
+    color: var(--text-light);
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.match-date {
+    color: var(--text-gray);
+    font-size: 0.8rem;
+}
+
+.h2h-summary-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.summary-card {
+    flex: 1;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.summary-value {
+    color: var(--neon-blue);
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px var(--neon-blue);
+}
+
+.summary-label {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .form-grid,
+    .stats-charts,
+    .players-grid,
+    .h2h-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-header {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .team-card {
+        max-width: 100%;
+    }
+    
+    .comparison-vs {
+        margin: 1rem 0;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if team1 and team2 %}
+    // Results Chart
+    const resultsCtx = document.getElementById('resultsChart').getContext('2d');
+    
+    const team1Name = "{{ team1[1] }}";
+    const team2Name = "{{ team2[1] }}";
+    
+    // Use actual results data from the database
+    const team1Results = {
+        wins: {{ team1_stats[0] or 0 }},
+        draws: {{ team1_stats[1] or 0 }},
+        losses: {{ team1_stats[2] or 0 }}
+    };
+    
+    const team2Results = {
+        wins: {{ team2_stats[0] or 0 }},
+        draws: {{ team2_stats[1] or 0 }},
+        losses: {{ team2_stats[2] or 0 }}
+    };
+    
+    const resultsChart = new Chart(resultsCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Wins', 'Draws', 'Losses'],
+            datasets: [
+                {
+                    label: team1Name,
+                    data: [team1Results.wins, team1Results.draws, team1Results.losses],
+                    backgroundColor: 'rgba(0, 243, 255, 0.7)',
+                    borderColor: 'rgba(0, 243, 255, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: team2Name,
+                    data: [team2Results.wins, team2Results.draws, team2Results.losses],
+                    backgroundColor: 'rgba(188, 19, 254, 0.7)',
+                    borderColor: 'rgba(188, 19, 254, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#ffffff'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Goals Chart
+    const goalsCtx = document.getElementById('goalsChart').getContext('2d');
+    
+    // Use actual goals data from the database
+    const team1Goals = {
+        scored: {{ team1_stats[3] or 0 }},
+        conceded: {{ team1_stats[4] or 0 }}
+    };
+    
+    const team2Goals = {
+        scored: {{ team2_stats[3] or 0 }},
+        conceded: {{ team2_stats[4] or 0 }}
+    };
+    
+    const goalsChart = new Chart(goalsCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Goals Scored', 'Goals Conceded'],
+            datasets: [
+                {
+                    label: team1Name,
+                    data: [team1Goals.scored, team1Goals.conceded],
+                    backgroundColor: 'rgba(0, 243, 255, 0.7)',
+                    borderColor: 'rgba(0, 243, 255, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: team2Name,
+                    data: [team2Goals.scored, team2Goals.conceded],
+                    backgroundColor: 'rgba(188, 19, 254, 0.7)',
+                    borderColor: 'rgba(188, 19, 254, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#ffffff'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %} 

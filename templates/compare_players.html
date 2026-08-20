@@ -1,0 +1,583 @@
+{% extends "user_dashboard.html" %}
+{% block user_content %}
+<!-- Include Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="neon-section">
+    <h2 class="neon-title">Player Comparison Tool</h2>
+    
+    <!-- Player Selection Form -->
+    <div class="comparison-form">
+        <form method="GET" action="{{ url_for('user.compare_players') }}" class="neon-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="player1_id" class="neon-label">Player 1</label>
+                    <select id="player1_id" name="player1_id" class="neon-select" required>
+                        <option value="">-- Select Player 1 --</option>
+                        {% for player in all_players %}
+                            <option value="{{ player[0] }}" {% if player1 and player1[8] == player[0] %}selected{% endif %}>
+                                {{ player[1] }} ({{ player[2] }}, {{ player[3] }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="player2_id" class="neon-label">Player 2</label>
+                    <select id="player2_id" name="player2_id" class="neon-select" required>
+                        <option value="">-- Select Player 2 --</option>
+                        {% for player in all_players %}
+                            <option value="{{ player[0] }}" {% if player2 and player2[8] == player[0] %}selected{% endif %}>
+                                {{ player[1] }} ({{ player[2] }}, {{ player[3] }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-submit">
+                <button type="submit" class="neon-button">Compare Players</button>
+            </div>
+        </form>
+    </div>
+    
+    {% if player1 and player2 %}
+    <!-- Comparison Content -->
+    <div class="comparison-content">
+        <div class="comparison-header">
+            <div class="player-card">
+                <div class="player-image-container">
+                    {% if player1[7] %}
+                        <img src="{{ player1[7] }}" alt="{{ player1[0] }}'s Picture" class="player-image">
+                    {% else %}
+                        <img src="/static/images/default_player.png" alt="Default Player Picture" class="player-image">
+                    {% endif %}
+                    <div class="player-position {% if player1[2] == 'Goalkeeper' %}gk{% elif player1[2] == 'Defender' or player1[2] == 'Defence' %}def{% elif player1[2] == 'Midfielder' or player1[2] == 'Midfield' %}mid{% elif player1[2] == 'Forward' or player1[2] == 'Offence' %}fwd{% endif %}">
+                        {{ player1[2] }}
+                    </div>
+                </div>
+                <h3 class="player-name">{{ player1[0] }}</h3>
+                <div class="player-team">{{ player1[4] }}</div>
+            </div>
+            
+            <div class="comparison-vs">VS</div>
+            
+            <div class="player-card">
+                <div class="player-image-container">
+                    {% if player2[7] %}
+                        <img src="{{ player2[7] }}" alt="{{ player2[0] }}'s Picture" class="player-image">
+                    {% else %}
+                        <img src="/static/images/default_player.png" alt="Default Player Picture" class="player-image">
+                    {% endif %}
+                    <div class="player-position {% if player2[2] == 'Goalkeeper' %}gk{% elif player2[2] == 'Defender' or player2[2] == 'Defence' %}def{% elif player2[2] == 'Midfielder' or player2[2] == 'Midfield' %}mid{% elif player2[2] == 'Forward' or player2[2] == 'Offence' %}fwd{% endif %}">
+                        {{ player2[2] }}
+                    </div>
+                </div>
+                <h3 class="player-name">{{ player2[0] }}</h3>
+                <div class="player-team">{{ player2[4] }}</div>
+            </div>
+        </div>
+        
+        <!-- Stats Comparison -->
+        <div class="stats-comparison">
+            <div class="stats-section">
+                <h3 class="section-title">Performance Stats</h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-comparison">
+                        <div class="stat-label">Goals</div>
+                        <div class="stat-bars">
+                            {% set max_goals = player1_stats[0] if player1_stats[0] > player2_stats[0] else player2_stats[0] %}
+                            {% set max_goals = max_goals if max_goals > 0 else 1 %}
+                            <div class="stat-bar player1" style="width: {{ (player1_stats[0] / max_goals) * 100 }}%;">
+                                <span class="stat-value">{{ player1_stats[0] }}</span>
+                            </div>
+                            <div class="stat-bar player2" style="width: {{ (player2_stats[0] / max_goals) * 100 }}%;">
+                                <span class="stat-value">{{ player2_stats[0] }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-comparison">
+                        <div class="stat-label">Assists</div>
+                        <div class="stat-bars">
+                            {% set max_assists = player1_stats[1] if player1_stats[1] > player2_stats[1] else player2_stats[1] %}
+                            {% set max_assists = max_assists if max_assists > 0 else 1 %}
+                            <div class="stat-bar player1" style="width: {{ (player1_stats[1] / max_assists) * 100 }}%;">
+                                <span class="stat-value">{{ player1_stats[1] }}</span>
+                            </div>
+                            <div class="stat-bar player2" style="width: {{ (player2_stats[1] / max_assists) * 100 }}%;">
+                                <span class="stat-value">{{ player2_stats[1] }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-comparison">
+                        <div class="stat-label">Penalties</div>
+                        <div class="stat-bars">
+                            {% set max_penalties = player1_stats[2] if player1_stats[2] > player2_stats[2] else player2_stats[2] %}
+                            {% set max_penalties = max_penalties if max_penalties > 0 else 1 %}
+                            <div class="stat-bar player1" style="width: {{ (player1_stats[2] / max_penalties) * 100 }}%;">
+                                <span class="stat-value">{{ player1_stats[2] }}</span>
+                            </div>
+                            <div class="stat-bar player2" style="width: {{ (player2_stats[2] / max_penalties) * 100 }}%;">
+                                <span class="stat-value">{{ player2_stats[2] }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-comparison">
+                        <div class="stat-label">Total Score</div>
+                        {% set player1_total = player1_stats[0] * 5 + player1_stats[1] * 3 + player1_stats[2] * 2 %}
+                        {% set player2_total = player2_stats[0] * 5 + player2_stats[1] * 3 + player2_stats[2] * 2 %}
+                        {% set max_total = player1_total if player1_total > player2_total else player2_total %}
+                        {% set max_total = max_total if max_total > 0 else 1 %}
+                        <div class="stat-bars">
+                            <div class="stat-bar player1" style="width: {{ (player1_total / max_total) * 100 }}%;">
+                                <span class="stat-value">{{ player1_total }}</span>
+                            </div>
+                            <div class="stat-bar player2" style="width: {{ (player2_total / max_total) * 100 }}%;">
+                                <span class="stat-value">{{ player2_total }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Radar Chart Comparison -->
+            <div class="radar-comparison">
+                <h3 class="section-title">Attribute Comparison</h3>
+                <div class="radar-chart-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-green: #00ff9d;
+    --neon-red: #ff0055;
+    --neon-yellow: #ffdd00;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+    --gk-color: #ffdd00;
+    --def-color: #00f3ff;
+    --mid-color: #00ff9d;
+    --fwd-color: #ff0055;
+}
+
+/* Form Styling */
+.comparison-form {
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.neon-label {
+    display: block;
+    color: var(--neon-blue);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.neon-select {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 6px;
+    background-color: var(--primary-dark);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%2300f3ff' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.neon-select:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+}
+
+/* Styling for dropdown options */
+.neon-select option {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    padding: 10px;
+}
+
+.form-submit {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.neon-button {
+    background: rgba(0, 243, 255, 0.1);
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.8rem 2rem;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.neon-button:hover {
+    background: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Comparison Content */
+.comparison-content {
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+}
+
+.comparison-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.player-card {
+    flex: 1;
+    max-width: 40%;
+    text-align: center;
+}
+
+.player-image-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1rem;
+}
+
+.player-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+}
+
+.player-position {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    color: var(--primary-dark);
+}
+
+.player-position.gk {
+    background-color: var(--gk-color);
+}
+
+.player-position.def {
+    background-color: var(--def-color);
+}
+
+.player-position.mid {
+    background-color: var(--mid-color);
+}
+
+.player-position.fwd {
+    background-color: var(--fwd-color);
+}
+
+.player-name {
+    color: var(--text-light);
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.player-team {
+    color: var(--text-gray);
+    font-size: 1rem;
+}
+
+.comparison-vs {
+    color: var(--neon-purple);
+    font-size: 2rem;
+    font-weight: bold;
+    text-shadow: 0 0 10px var(--neon-purple);
+}
+
+/* Stats Comparison */
+.stats-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.stats-section {
+    flex: 1;
+}
+
+.section-title {
+    color: var(--text-light);
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background: var(--neon-blue);
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.stat-comparison {
+    margin-bottom: 1rem;
+}
+
+.stat-label {
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stat-bar {
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 1rem;
+    position: relative;
+    transition: width 0.5s ease-out;
+}
+
+.stat-bar.player1 {
+    background: linear-gradient(to right, rgba(0, 243, 255, 0.2), rgba(0, 243, 255, 0.5));
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+}
+
+.stat-bar.player2 {
+    background: linear-gradient(to right, rgba(188, 19, 254, 0.2), rgba(188, 19, 254, 0.5));
+    box-shadow: 0 0 10px rgba(188, 19, 254, 0.3);
+}
+
+.stat-value {
+    color: var(--text-light);
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Radar Chart */
+.radar-comparison {
+    flex: 1;
+}
+
+.radar-chart-container {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-header {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .player-card {
+        max-width: 100%;
+    }
+    
+    .comparison-vs {
+        margin: 1rem 0;
+    }
+    
+    .stats-comparison {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if player1 and player2 %}
+    // Initialize radar chart
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    
+    // Generate attributes based on player position and statistics
+    function generateAttributes(player, stats, position) {
+        // Base attributes with some randomness, but enhanced by actual stats
+        let baseSpeed = Math.floor(Math.random() * 10) + 70;
+        let baseShooting = Math.floor(Math.random() * 10) + 70;
+        let basePassing = Math.floor(Math.random() * 10) + 70;
+        let baseDribbling = Math.floor(Math.random() * 10) + 70;
+        let baseDefense = Math.floor(Math.random() * 10) + 70;
+        let basePhysical = Math.floor(Math.random() * 10) + 70;
+        
+        // Enhance based on stats
+        let shooting = Math.min(98, baseShooting + (stats[0] * 2));
+        let passing = Math.min(95, basePassing + (stats[1] * 2));
+        
+        // Position-based adjustments
+        if (position.includes('Forward') || position.includes('Offence')) {
+            speed = Math.min(95, baseSpeed + 10);
+            shooting = Math.min(98, shooting + 5);
+            dribbling = Math.min(95, baseDribbling + 10);
+            defense = Math.max(60, baseDefense - 10);
+        } else if (position.includes('Midfielder') || position.includes('Midfield')) {
+            passing = Math.min(98, passing + 5);
+            dribbling = Math.min(90, baseDribbling + 5);
+            defense = Math.min(85, baseDefense + 5);
+        } else if (position.includes('Defender') || position.includes('Defence')) {
+            defense = Math.min(98, baseDefense + 15);
+            physical = Math.min(95, basePhysical + 10);
+            speed = Math.min(90, baseSpeed + 5);
+        } else if (position.includes('Goalkeeper')) {
+            // Goalkeepers have different attributes
+            return {
+                'Reflexes': Math.floor(Math.random() * 15) + 80,
+                'Handling': Math.floor(Math.random() * 15) + 75,
+                'Positioning': Math.floor(Math.random() * 15) + 80,
+                'Kicking': Math.floor(Math.random() * 20) + 75,
+                'Speed': Math.floor(Math.random() * 20) + 60,
+                'Physical': Math.floor(Math.random() * 15) + 75
+            };
+        }
+        
+        return {
+            'Pace': Math.floor(baseSpeed + (stats[0] * 0.5)),
+            'Shooting': Math.floor(shooting),
+            'Passing': Math.floor(passing),
+            'Dribbling': Math.floor(baseDribbling + (stats[1] * 0.5)),
+            'Defense': Math.floor(baseDefense),
+            'Physical': Math.floor(basePhysical)
+        };
+    }
+    
+    const player1Attributes = generateAttributes("{{ player1[0] }}", {{ player1_stats }}, "{{ player1[2] }}");
+    const player2Attributes = generateAttributes("{{ player2[0] }}", {{ player2_stats }}, "{{ player2[2] }}");
+    
+    const attributes = Object.keys(player1Attributes);
+    
+    const radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: attributes,
+            datasets: [
+                {
+                    label: "{{ player1[0] }}",
+                    data: attributes.map(attr => player1Attributes[attr]),
+                    backgroundColor: 'rgba(0, 243, 255, 0.2)',
+                    borderColor: 'rgba(0, 243, 255, 1)',
+                    pointBackgroundColor: 'rgba(0, 243, 255, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(0, 243, 255, 1)'
+                },
+                {
+                    label: "{{ player2[0] }}",
+                    data: attributes.map(attr => player2Attributes[attr]),
+                    backgroundColor: 'rgba(188, 19, 254, 0.2)',
+                    borderColor: 'rgba(188, 19, 254, 1)',
+                    pointBackgroundColor: 'rgba(188, 19, 254, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(188, 19, 254, 1)'
+                }
+            ]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#ffffff'
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    angleLines: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    pointLabels: {
+                        color: '#ffffff'
+                    },
+                    ticks: {
+                        backdropColor: 'transparent',
+                        color: '#ffffff'
+                    },
+                    min: 50,
+                    max: 100
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %} 

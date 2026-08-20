@@ -1,0 +1,1448 @@
+{% extends "user_dashboard.html" %}
+{% block user_content %}
+<div class="neon-section">
+    <div class="match-profile-header">
+        <div class="match-info">
+            <div class="match-date">
+                <span class="info-label">Date</span>
+                <span class="info-value">{{ match[7].strftime('%B %d, %Y') if match[7] else 'Unknown' }}</span>
+            </div>
+            <div class="match-venue">
+                <span class="info-label">Venue</span>
+                <span class="info-value">{{ match[10] if match[10] else 'Unknown' }}</span>
+            </div>
+            <div class="match-referee">
+                <span class="info-label">Referee</span>
+                <span class="info-value">
+                    {{ match[11] if match[11] else 'Unknown' }}
+                    {% if match[12] %}
+                        <img src="{{ match[12] }}" alt="Referee Flag" class="flag-img">
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="match-score-container">
+        <div class="team home-team">
+            <div class="team-logo-container">
+                {% if match[8] %}
+                    <img src="{{ match[8] }}" alt="{{ match[13] }} Logo" class="team-logo">
+                {% else %}
+                    <img src="/static/images/icon.png" alt="Default Team Logo" class="team-logo">
+                {% endif %}
+            </div>
+            <div class="team-name">{{ match[13] }}</div>
+        </div>
+
+        <div class="match-score">
+            <div class="score-display">
+                {{ match[3] if match[3] is not none else '0' }} - {{ match[4] if match[4] is not none else '0' }}
+            </div>
+            {% if match[5] is not none and match[6] is not none %}
+                <div class="half-time-score">
+                    HT: {{ match[5] }} - {{ match[6] }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="team away-team">
+            <div class="team-name">{{ match[14] }}</div>
+            <div class="team-logo-container">
+                {% if match[9] %}
+                    <img src="{{ match[9] }}" alt="{{ match[14] }} Logo" class="team-logo">
+                {% else %}
+                    <img src="/static/images/icon.png" alt="Default Team Logo" class="team-logo">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if goals %}
+    <div class="profile-section">
+        <h3 class="section-title">Goal Scorers</h3>
+        <div class="goals-container">
+            <div class="team-goals home-goals">
+                <h4 class="team-title">{{ match[13] }}</h4>
+                <div class="goals-list">
+                    {% for goal in goals %}
+                        {% if goal.team_id == match[1] %}
+                            <div class="goal-item">
+                                <span class="goal-minute">{{ goal.minute }}'</span>
+                                <span class="goal-scorer">{{ goal.scorer_name }}</span>
+                                {% if goal.is_penalty %}
+                                    <span class="goal-type penalty">Penalty</span>
+                                {% endif %}
+                                {% if goal.is_own_goal %}
+                                    <span class="goal-type own-goal">Own Goal</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="team-goals away-goals">
+                <h4 class="team-title">{{ match[14] }}</h4>
+                <div class="goals-list">
+                    {% for goal in goals %}
+                        {% if goal.team_id == match[2] %}
+                            <div class="goal-item">
+                                <span class="goal-minute">{{ goal.minute }}'</span>
+                                <span class="goal-scorer">{{ goal.scorer_name }}</span>
+                                {% if goal.is_penalty %}
+                                    <span class="goal-type penalty">Penalty</span>
+                                {% endif %}
+                                {% if goal.is_own_goal %}
+                                    <span class="goal-type own-goal">Own Goal</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Match Polls Button - Only show for upcoming matches -->
+    {% if match[15] == 'SCHEDULED' %}
+    <div class="poll-button-container">
+        <button id="showPollsBtn" class="neon-button polls-btn">
+            <i class="fas fa-poll"></i> Match-day Polls & Surveys
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Match Polls Modal -->
+<div id="pollsModal" class="polls-modal">
+    <div class="polls-modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Match-day Polls & Surveys</h2>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="match-teams-header">
+                <div class="poll-team home">
+                    {% if match[8] %}
+                        <img src="{{ match[8] }}" alt="{{ match[13] }} Logo" class="team-logo-sm">
+                    {% endif %}
+                    <span>{{ match[13] }}</span>
+                </div>
+                <div class="poll-vs">VS</div>
+                <div class="poll-team away">
+                    <span>{{ match[14] }}</span>
+                    {% if match[9] %}
+                        <img src="{{ match[9] }}" alt="{{ match[14] }} Logo" class="team-logo-sm">
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Poll Tabs -->
+            <div class="poll-tabs">
+                <button class="poll-tab active" data-tab="predictions">Predictions</button>
+                <button class="poll-tab" data-tab="motm">Man of the Match</button>
+                <button class="poll-tab" data-tab="ratings">Player Ratings</button>
+                <button class="poll-tab" data-tab="results">Poll Results</button>
+            </div>
+            
+            <!-- Prediction Poll -->
+            <div class="poll-tab-content active" id="predictions">
+                <h3 class="poll-section-title">Predict the Match Result</h3>
+                <form class="poll-form">
+                    <div class="prediction-score-container">
+                        <div class="team-input home-team-input">
+                            <label>{{ match[13] }}</label>
+                            <input type="number" min="0" max="10" value="0" class="score-input">
+                        </div>
+                        <div class="score-separator">-</div>
+                        <div class="team-input away-team-input">
+                            <label>{{ match[14] }}</label>
+                            <input type="number" min="0" max="10" value="0" class="score-input">
+                        </div>
+                    </div>
+                    
+                    <div class="prediction-extra">
+                        <h4>First Goal Scorer</h4>
+                        <select class="neon-select scorer-select">
+                            <option value="">-- Select Player --</option>
+                            <option value="1">Sunil Chhetri</option>
+                            <option value="2">Dimitri Petratos</option>
+                            <option value="3">Jason Cummings</option>
+                            <option value="4">Cleiton Silva</option>
+                            <option value="5">No Goals</option>
+                        </select>
+                        
+                        <h4>Match Performance</h4>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="perf_exciting" name="match_performance" value="exciting">
+                                <label for="perf_exciting">Exciting</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="perf_balanced" name="match_performance" value="balanced" checked>
+                                <label for="perf_balanced">Balanced</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="perf_defensive" name="match_performance" value="defensive">
+                                <label for="perf_defensive">Defensive</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="neon-button submit-btn">Submit Prediction</button>
+                </form>
+            </div>
+            
+            <!-- Man of the Match Poll -->
+            <div class="poll-tab-content" id="motm">
+                <h3 class="poll-section-title">Vote for Man of the Match</h3>
+                <div class="motm-container">
+                    <div class="motm-team">
+                        <h4>{{ match[13] }}</h4>
+                        <div class="player-grid">
+                            {% for player in home_team_top_scorers %}
+                            <div class="player-vote-card">
+                                <div class="player-info-container">
+                                    <div class="player-image"><i class="fas fa-user"></i></div>
+                                    <div class="player-details">
+                                        <div class="player-name">{{ player[1] }}</div>
+                                        <div class="player-stats">
+                                            <span class="stat-item">{{ player[2] }} Goals</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="vote-btn" data-player-id="{{ player[0] }}">Vote</button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="motm-team">
+                        <h4>{{ match[14] }}</h4>
+                        <div class="player-grid">
+                            {% for player in away_team_top_scorers %}
+                            <div class="player-vote-card">
+                                <div class="player-info-container">
+                                    <div class="player-image"><i class="fas fa-user"></i></div>
+                                    <div class="player-details">
+                                        <div class="player-name">{{ player[1] }}</div>
+                                        <div class="player-stats">
+                                            <span class="stat-item">{{ player[2] }} Goals</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="vote-btn" data-player-id="{{ player[0] }}">Vote</button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Player Ratings Poll -->
+            <div class="poll-tab-content" id="ratings">
+                <h3 class="poll-section-title">Rate Player Performances</h3>
+                <div class="ratings-container">
+                    <div class="player-rating-card">
+                        <div class="player-info">
+                            <div class="player-image"><i class="fas fa-user"></i></div>
+                            <div class="player-name">Sunil Chhetri</div>
+                        </div>
+                        <div class="rating-stars">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                        </div>
+                    </div>
+                    <div class="player-rating-card">
+                        <div class="player-info">
+                            <div class="player-image"><i class="fas fa-user"></i></div>
+                            <div class="player-name">Gurpreet Singh</div>
+                        </div>
+                        <div class="rating-stars">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                        </div>
+                    </div>
+                    <div class="player-rating-card">
+                        <div class="player-info">
+                            <div class="player-image"><i class="fas fa-user"></i></div>
+                            <div class="player-name">Roy Krishna</div>
+                        </div>
+                        <div class="rating-stars">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="neon-button submit-btn">Submit Ratings</button>
+                </div>
+            </div>
+            
+            <!-- Poll Results -->
+            <div class="poll-tab-content" id="results">
+                <h3 class="poll-section-title">Current Poll Results</h3>
+                <div class="results-container">
+                    <!-- Score Prediction Results -->
+                    <div class="result-section">
+                        <h4>Predicted Score</h4>
+                        <div class="result-chart">
+                            <div class="prediction-bar">
+                                <div class="prediction-label">{{ match[13] }} Win</div>
+                                <div class="prediction-progress">
+                                    <div class="progress-fill home-win" style="width: 45%"></div>
+                                </div>
+                                <div class="prediction-percent">45%</div>
+                            </div>
+                            <div class="prediction-bar">
+                                <div class="prediction-label">Draw</div>
+                                <div class="prediction-progress">
+                                    <div class="progress-fill draw" style="width: 30%"></div>
+                                </div>
+                                <div class="prediction-percent">30%</div>
+                            </div>
+                            <div class="prediction-bar">
+                                <div class="prediction-label">{{ match[14] }} Win</div>
+                                <div class="prediction-progress">
+                                    <div class="progress-fill away-win" style="width: 25%"></div>
+                                </div>
+                                <div class="prediction-percent">25%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- MOTM Results -->
+                    <div class="result-section">
+                        <h4>Man of the Match Voting</h4>
+                        <div class="result-chart">
+                            <div class="prediction-bar">
+                                <div class="prediction-label">Sunil Chhetri</div>
+                                <div class="prediction-progress">
+                                    <div class="progress-fill motm" style="width: 38%"></div>
+                                </div>
+                                <div class="prediction-percent">38%</div>
+                            </div>
+                            <div class="prediction-bar">
+                                <div class="prediction-label">Dimitri Petratos</div>
+                                <div class="prediction-progress">
+                                    <div class="progress-fill motm" style="width: 24%"></div>
+                                </div>
+                                <div class="prediction-percent">24%</div>
+                            </div>
+                            <div class="prediction-bar">
+                                <div class="prediction-label">Jason Cummings</div>
+                                <div class="prediction-progress">
+                                    <div class="progress-fill motm" style="width: 19%"></div>
+                                </div>
+                                <div class="prediction-percent">19%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --accent-blue: #4361ee;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-red: #ff0055;
+    --neon-green: #00ff9d;
+    --neon-yellow: #ffdd00;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+}
+
+/* Match header */
+.match-profile-header {
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+}
+
+.match-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.info-label {
+    display: block;
+    color: var(--neon-blue);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.3rem;
+}
+
+.info-value {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Match score container */
+.match-score-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--secondary-dark);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+}
+
+.team {
+    flex: 1;
+    text-align: center;
+}
+
+.home-team {
+    text-align: right;
+}
+
+.away-team {
+    text-align: left;
+}
+
+.team-logo-container {
+    margin: 0 1rem;
+}
+
+.team-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+}
+
+.team-name {
+    color: var(--text-light);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+.match-score {
+    text-align: center;
+    padding: 0 2rem;
+}
+
+.score-display {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+    margin-bottom: 0.5rem;
+}
+
+.half-time-score {
+    font-size: 1rem;
+    color: var(--text-gray);
+}
+
+/* Goals section */
+.goals-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.team-goals {
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+.team-title {
+    color: var(--neon-blue);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.goals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.goal-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(0, 243, 255, 0.1);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.goal-item:hover {
+    background-color: rgba(0, 243, 255, 0.2);
+    transform: translateX(5px);
+}
+
+.goal-minute {
+    color: var(--neon-yellow);
+    font-weight: bold;
+    min-width: 40px;
+}
+
+.goal-scorer {
+    color: var(--text-light);
+    flex: 1;
+}
+
+.goal-type {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.goal-type.penalty {
+    background-color: rgba(255, 0, 85, 0.2);
+    color: var(--neon-red);
+    border: 1px solid var(--neon-red);
+}
+
+.goal-type.own-goal {
+    background-color: rgba(255, 221, 0, 0.2);
+    color: var(--neon-yellow);
+    border: 1px solid var(--neon-yellow);
+}
+
+    .flag-img {
+    width: 20px;
+        height: auto;
+    max-height: 15px;
+        object-fit: cover;
+    border-radius: 3px;
+    border: 1px solid var(--neon-purple);
+    box-shadow: 0 0 5px rgba(188, 19, 254, 0.3);
+}
+
+/* Section title */
+.section-title {
+    color: var(--text-light);
+    text-shadow: 0 0 2px var(--neon-blue);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background: var(--neon-blue);
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .match-score-container {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .team {
+        text-align: center;
+    }
+
+    .home-team, .away-team {
+        text-align: center;
+    }
+
+    .match-score {
+        padding: 1rem 0;
+    }
+
+    .goals-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Poll Button */
+.poll-button-container {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.polls-btn {
+    background: rgba(0, 243, 255, 0.1);
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+    letter-spacing: 1px;
+}
+
+.polls-btn:hover {
+    background: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+    transform: translateY(-3px);
+}
+
+.polls-btn i {
+    font-size: 1.2rem;
+}
+
+/* Polls Modal */
+.polls-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    overflow-y: auto;
+    backdrop-filter: blur(5px);
+}
+
+/* Added class for JavaScript to force modal visibility */
+.active-modal {
+    display: block !important;
+}
+
+.polls-modal-content {
+    background: var(--primary-dark);
+    margin: 3vh auto;
+    width: 90%;
+    max-width: 900px;
+    border-radius: 12px;
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+    border: 2px solid var(--neon-blue);
+    position: relative;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+}
+
+.modal-title {
+    color: var(--neon-blue);
+    font-size: 1.8rem;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+    margin: 0;
+}
+
+.close-modal {
+    color: var(--text-light);
+    font-size: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close-modal:hover {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+/* Match teams header */
+.match-teams-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1.5rem;
+}
+
+.poll-team {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.poll-team.home {
+    flex-direction: row;
+}
+
+.poll-team.away {
+    flex-direction: row-reverse;
+}
+
+.poll-team span {
+    color: var(--text-light);
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.team-logo-sm {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.poll-vs {
+    color: var(--neon-purple);
+    font-weight: bold;
+    font-size: 1.8rem;
+    text-shadow: 0 0 5px var(--neon-purple);
+    padding: 0 1rem;
+}
+
+/* Poll tabs */
+.poll-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+}
+
+.poll-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-gray);
+    padding: 0.8rem 1.2rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.poll-tab:hover {
+    color: var(--text-light);
+}
+
+.poll-tab.active {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+}
+
+.poll-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    height: 3px;
+    background: var(--neon-blue);
+    border-radius: 3px;
+    box-shadow: 0 0 8px var(--neon-blue);
+}
+
+/* Poll tab content */
+.poll-tab-content {
+    display: none;
+}
+
+.poll-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.poll-section-title {
+    color: var(--neon-blue);
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    position: relative;
+    display: block;
+    width: 100%;
+    letter-spacing: 1px;
+}
+
+.poll-section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 100%;
+    height: 2px;
+    background: var(--neon-blue);
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Prediction poll */
+.poll-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.prediction-score-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    padding-top: 1rem;
+}
+
+.team-input {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    min-width: 120px;
+}
+
+.home-team-input {
+    align-items: flex-end;
+}
+
+.away-team-input {
+    align-items: flex-start;
+}
+
+.team-input label {
+    color: var(--text-light);
+    font-weight: bold;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    margin: 0;
+}
+
+.score-input {
+    width: 70px;
+    height: 70px;
+    background: var(--secondary-dark);
+    border: 2px solid var(--neon-blue);
+    border-radius: 8px;
+    font-size: 2rem;
+    color: var(--text-light);
+    text-align: center;
+    transition: all 0.3s ease;
+    padding: 0;
+    margin: 0;
+}
+
+.score-input:focus {
+    outline: none;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+    border-color: var(--neon-blue);
+}
+
+.score-separator {
+    color: var(--text-light);
+    font-size: 2.5rem;
+    font-weight: bold;
+    padding: 0 0.8rem;
+    margin-top: 2rem; /* Align with inputs */
+}
+
+.prediction-extra {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin: 2rem 0;
+    width: 100%;
+}
+
+.prediction-extra h4 {
+    color: var(--neon-blue);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.scorer-select {
+    background: var(--secondary-dark);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    padding: 0.8rem;
+    border-radius: 6px;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    display: block;
+}
+
+.scorer-select:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+}
+
+.radio-group {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.radio-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.radio-item input[type="radio"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--neon-blue);
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.radio-item input[type="radio"]:checked {
+    background-color: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+}
+
+.radio-item input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background-color: var(--neon-blue);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.radio-item label {
+    color: var(--text-light);
+    cursor: pointer;
+}
+
+.submit-btn {
+    align-self: center;
+    padding: 0.8rem 2rem;
+    background: rgba(0, 243, 255, 0.1);
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    margin-top: 1rem;
+}
+
+.submit-btn:hover {
+    background: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Poll tabs and content */
+.poll-tab-content {
+    display: none;
+}
+
+.poll-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+    width: 100%;
+}
+
+.poll-section-title {
+    color: var(--neon-blue);
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    position: relative;
+    display: block;
+    width: 100%;
+    letter-spacing: 1px;
+}
+
+.poll-section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 100%;
+    height: 2px;
+    background: var(--neon-blue);
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* MOTM poll */
+.motm-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.motm-team h4 {
+    color: var(--neon-blue);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+.player-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+}
+
+.player-vote-card {
+    background: var(--secondary-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.player-vote-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+}
+
+.player-info-container {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.player-image {
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    color: var(--text-gray);
+    font-size: 1.2rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.player-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.player-stats {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.stat-item {
+    color: var(--neon-green);
+    font-size: 0.75rem;
+    background-color: rgba(0, 255, 157, 0.1);
+    padding: 0.1rem 0.5rem;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 255, 157, 0.3);
+}
+
+.player-name {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    text-align: left;
+    font-weight: 500;
+    margin: 0;
+}
+
+.vote-btn {
+    background: rgba(188, 19, 254, 0.1);
+    border: 1px solid var(--neon-purple);
+    color: var(--neon-purple);
+    padding: 0.5rem 1.2rem;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px rgba(188, 19, 254, 0.5);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.vote-btn:hover {
+    background: rgba(188, 19, 254, 0.2);
+    box-shadow: 0 0 10px rgba(188, 19, 254, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Player ratings poll */
+.ratings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.player-rating-card {
+    background: var(--secondary-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.player-rating-card:hover {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+.player-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 0.3rem;
+    color: var(--text-gray);
+    font-size: 1.3rem;
+}
+
+.rating-stars i {
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.rating-stars i:hover {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 5px var(--neon-yellow);
+}
+
+.rating-stars i.selected {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 5px var(--neon-yellow);
+}
+
+/* Poll results */
+.results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.result-section {
+    background: var(--secondary-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.result-section h4 {
+    color: var(--neon-blue);
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.result-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.prediction-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.prediction-label {
+    width: 120px;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.prediction-progress {
+    flex: 1;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+        border-radius: 5px;
+    }
+
+.progress-fill.home-win {
+    background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+    box-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+}
+
+.progress-fill.draw {
+    background: linear-gradient(to right, var(--neon-green), var(--neon-blue));
+    box-shadow: 0 0 8px rgba(0, 255, 157, 0.5);
+}
+
+.progress-fill.away-win {
+    background: linear-gradient(to right, var(--neon-purple), var(--neon-red));
+    box-shadow: 0 0 8px rgba(188, 19, 254, 0.5);
+}
+
+.progress-fill.motm {
+    background: linear-gradient(to right, var(--neon-yellow), var(--neon-purple));
+    box-shadow: 0 0 8px rgba(255, 221, 0, 0.5);
+}
+
+.prediction-percent {
+    width: 40px;
+    color: var(--text-light);
+    font-size: 0.9rem;
+        font-weight: bold;
+    text-align: right;
+}
+
+/* Media query for mobile */
+@media (max-width: 768px) {
+    .prediction-score-container {
+        gap: 1rem;
+    }
+    
+    .team-input label {
+        font-size: 0.9rem;
+        max-width: 100px;
+    }
+    
+    .score-input {
+        width: 60px;
+        height: 60px;
+        font-size: 1.8rem;
+    }
+    
+    .score-separator {
+        font-size: 1.8rem;
+        padding: 0 0.5rem;
+    }
+    
+    .radio-group {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .motm-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive adjustments */
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Polls Modal functionality
+        const modal = document.getElementById('pollsModal');
+        const btn = document.getElementById('showPollsBtn');
+        const closeBtn = document.querySelector('.close-modal');
+        
+        if (btn) {
+            btn.onclick = function() {
+                modal.classList.add('active-modal');
+                console.log('Modal button clicked - activating modal');
+            }
+        }
+        
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                modal.classList.remove('active-modal');
+                console.log('Modal closed by close button');
+            }
+        }
+        
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.classList.remove('active-modal');
+                console.log('Modal closed by clicking outside');
+            }
+        }
+        
+        // Poll tabs functionality
+        const tabs = document.querySelectorAll('.poll-tab');
+        const tabContents = document.querySelectorAll('.poll-tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Hide all tab contents
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Show the corresponding tab content
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Star rating functionality
+        const stars = document.querySelectorAll('.rating-stars i');
+        
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const rating = parseInt(star.getAttribute('data-rating'));
+                const parentStars = star.parentElement.querySelectorAll('i');
+                
+                parentStars.forEach(s => {
+                    const starRating = parseInt(s.getAttribute('data-rating'));
+                    if (starRating <= rating) {
+                        s.classList.remove('far');
+                        s.classList.add('fas', 'selected');
+                    } else {
+                        s.classList.remove('fas', 'selected');
+                        s.classList.add('far');
+                    }
+                });
+            });
+        });
+        
+        // Submit buttons functionality (for demonstration)
+        const submitBtns = document.querySelectorAll('.submit-btn');
+        
+        submitBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Show a success message (in a real app, you would send data to server)
+                btn.innerHTML = '<i class="fas fa-check"></i> Submitted!';
+                btn.style.backgroundColor = 'rgba(0, 255, 157, 0.2)';
+                btn.style.borderColor = 'var(--neon-green)';
+                btn.style.color = 'var(--neon-green)';
+                
+                setTimeout(() => {
+                    btn.innerHTML = 'Submit';
+                    btn.style.backgroundColor = '';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 2000);
+            });
+        });
+        
+        // MOTM voting functionality
+        const voteBtns = document.querySelectorAll('.vote-btn');
+        
+        voteBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Reset all vote buttons
+                voteBtns.forEach(b => {
+                    b.innerHTML = 'Vote';
+                    b.style.backgroundColor = '';
+                    b.style.borderColor = '';
+                    b.style.color = '';
+                });
+                
+                // Update clicked button
+                btn.innerHTML = '<i class="fas fa-check"></i> Voted!';
+                btn.style.backgroundColor = 'rgba(188, 19, 254, 0.2)';
+                btn.style.borderColor = 'var(--neon-purple)';
+                btn.style.color = 'var(--neon-purple)';
+            });
+        });
+        
+        // Score input functionality
+        const scoreInputs = document.querySelectorAll('.score-input');
+        
+        scoreInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                // Ensure value is a number and within range
+                let value = parseInt(input.value);
+                if (isNaN(value)) {
+                    input.value = 0;
+                } else if (value > 10) {
+                    input.value = 10;
+                } else if (value < 0) {
+                    input.value = 0;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

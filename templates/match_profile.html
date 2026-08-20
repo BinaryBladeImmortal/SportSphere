@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block title %}Match Profile{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Match Profile</h1>
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <img src="{{ match[8] }}" alt="{{ match[13] }}" class="team-logo mb-2" style="max-width: 100px;">
+                    <h3>{{ match[13] }}</h3>
+                </div>
+                <div class="col-md-4 text-center d-flex flex-column justify-content-center">
+                    <div class="match-score mb-3">
+                        <h2>{{ match[5] if match[5] is not none else '0' }} - {{ match[6] if match[6] is not none else '0' }}</h2>
+                    </div>
+                    <div class="match-info">
+                        <p><strong>Date:</strong> {{ match[7] }}</p>
+                        <p><strong>Venue:</strong> {{ match[10] }}</p>
+                        <p><strong>Referee:</strong> {{ match[11] }} <img src="{{ match[12] }}" alt="Referee nationality" style="height: 20px;"></p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <img src="{{ match[9] }}" alt="{{ match[14] }}" class="team-logo mb-2" style="max-width: 100px;">
+                    <h3>{{ match[14] }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Scorers Section -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Goal Scorers</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>{{ match[13] }}</h4>
+                    <ul class="list-unstyled">
+                        {% for goal in goals %}
+                            {% if goal.team_id == match[1] %}  <!-- home team -->
+                                <li>
+                                    {{ goal.minute }}' {{ goal.scorer_name }}
+                                    {% if goal.is_penalty %}(Penalty){% endif %}
+                                    {% if goal.is_own_goal %}(Own Goal){% endif %}
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>{{ match[14] }}</h4>
+                    <ul class="list-unstyled">
+                        {% for goal in goals %}
+                            {% if goal.team_id == match[2] %}  <!-- away team -->
+                                <li>
+                                    {{ goal.minute }}' {{ goal.scorer_name }}
+                                    {% if goal.is_penalty %}(Penalty){% endif %}
+                                    {% if goal.is_own_goal %}(Own Goal){% endif %}
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

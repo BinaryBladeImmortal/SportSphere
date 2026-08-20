@@ -1,0 +1,472 @@
+{% extends "admin.html" %}
+{% block admin_content %}
+<div class="admin-header">
+    <h1 class="neon-title">Manage Goals</h1>
+    <p class="subtitle">Add and manage goals in the league system</p>
+</div>
+
+<div class="admin-grid">
+    <div class="form-card">
+        <div class="card-header">
+            <i class="fas fa-plus-circle"></i>
+            <h3 id="form-title">Add Goal</h3>
+        </div>
+        <form action="{{ url_for('admin.manage_goals') }}" method="POST" class="neon-form">
+            <input type="hidden" id="goal_id" name="goal_id">
+            
+            <div class="form-group">
+                <label for="match_id">Match</label>
+                <select class="neon-input" id="match_id" name="match_id" required onchange="updateTeamPlayers()">
+                    <option value="">Select Match</option>
+                    {% for match in matches %}
+                    <option value="{{ match[0] }}" data-home-team="{{ match[4] }}" data-away-team="{{ match[5] }}">
+                        {{ match[2] }} vs {{ match[3] }} ({{ match[1] }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="team_id">Scoring Team</label>
+                <select class="neon-input" id="team_id" name="team_id" required onchange="updatePlayers()">
+                    <option value="">Select Team</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="player_id">Scorer</label>
+                <select class="neon-input" id="player_id" name="player_id" required>
+                    <option value="">Select Player</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="minute">Minute</label>
+                <input type="number" class="neon-input" id="minute" name="minute" min="1" max="90" required>
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <div class="neon-checkbox">
+                    <input type="checkbox" id="is_penalty" name="is_penalty">
+                    <label for="is_penalty">Penalty Goal</label>
+                </div>
+                <div class="neon-checkbox">
+                    <input type="checkbox" id="is_own_goal" name="is_own_goal">
+                    <label for="is_own_goal">Own Goal</label>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="neon-button primary">Add Goal</button>
+                <button type="button" class="neon-button secondary" onclick="resetForm()">Reset</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <div class="card-header">
+            <i class="fas fa-list"></i>
+            <h3>Goals List</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="neon-table">
+                <thead>
+                    <tr>
+                        <th>Match</th>
+                        <th>Scorer</th>
+                        <th>Team</th>
+                        <th>Minute</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for goal in goals %}
+                    <tr>
+                        <td>{{ goal[2] }} vs {{ goal[3] }}</td>
+                        <td>{{ goal[4] }}</td>
+                        <td>{{ goal[5] }}</td>
+                        <td>{{ goal[6] }}'</td>
+                        <td>
+                            {% if goal[7] %}
+                                <span class="goal-type penalty">Penalty</span>
+                            {% endif %}
+                            {% if goal[8] %}
+                                <span class="goal-type own-goal">Own Goal</span>
+                            {% endif %}
+                            {% if not goal[7] and not goal[8] %}
+                                <span class="goal-type normal">Normal</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            <button class="neon-button delete" onclick="confirmDelete('{{ goal[0] }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade neon-modal" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Goal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this goal? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <form action="{{ url_for('admin.manage_goals') }}" method="POST" id="deleteForm">
+                    <input type="hidden" name="deleteEntityId" id="deleteEntityId">
+                    <button type="button" class="neon-button secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" name="delete" class="neon-button delete">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Form and Table Layout */
+.admin-grid {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* Card Styles */
+.form-card, .table-card {
+    background: var(--secondary-dark);
+    border-radius: 10px;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+}
+
+.card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.card-header i {
+    color: var(--neon-blue);
+    font-size: 1.2rem;
+}
+
+.card-header h3 {
+    color: var(--text-light);
+    margin: 0;
+}
+
+/* Form Styles */
+.neon-form {
+    padding: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.neon-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--neon-blue);
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-light);
+    transition: all 0.3s ease;
+}
+
+.neon-input:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+}
+
+/* Checkbox Styles */
+.checkbox-group {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.neon-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.neon-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--neon-blue);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    position: relative;
+}
+
+.neon-checkbox input[type="checkbox"]:checked {
+    background: var(--neon-blue);
+}
+
+.neon-checkbox input[type="checkbox"]:checked::before {
+    content: '✓';
+    position: absolute;
+    color: var(--primary-dark);
+    font-size: 14px;
+    font-weight: bold;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.neon-checkbox label {
+    color: var(--text-light);
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Table Styles */
+.neon-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.neon-table th,
+.neon-table td {
+    padding: 1rem;
+    color: var(--text-light);
+    border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+}
+
+.neon-table th {
+    font-weight: 600;
+    text-align: left;
+    opacity: 0.8;
+}
+
+.neon-table tbody tr:hover {
+    background: rgba(0, 243, 255, 0.05);
+}
+
+/* Goal Type Badges */
+.goal-type {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.goal-type.normal {
+    background: rgba(0, 243, 255, 0.1);
+    color: var(--neon-blue);
+    border: 1px solid var(--neon-blue);
+}
+
+.goal-type.penalty {
+    background: rgba(255, 0, 85, 0.1);
+    color: var(--neon-red);
+    border: 1px solid var(--neon-red);
+}
+
+.goal-type.own-goal {
+    background: rgba(255, 221, 0, 0.1);
+    color: var(--neon-yellow);
+    border: 1px solid var(--neon-yellow);
+}
+
+/* Button Styles */
+.neon-button {
+    padding: 0.8rem 1.5rem;
+    border: 1px solid;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.neon-button.primary {
+    background: var(--neon-blue);
+    border-color: var(--neon-blue);
+    color: var(--primary-dark);
+}
+
+.neon-button.secondary {
+    background: transparent;
+    border-color: var(--neon-blue);
+    color: var(--neon-blue);
+}
+
+.neon-button.delete {
+    background: transparent;
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+    padding: 0.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Modal Styles */
+.neon-modal .modal-content {
+    background: var(--secondary-dark);
+    border: 1px solid var(--neon-blue);
+}
+
+.neon-modal .modal-header {
+    border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+}
+
+.neon-modal .modal-footer {
+    border-top: 1px solid rgba(0, 243, 255, 0.1);
+}
+
+.neon-modal .modal-title {
+    color: var(--text-light);
+}
+
+.neon-modal .close {
+    color: var(--text-light);
+}
+
+.neon-modal .modal-body {
+    color: var(--text-light);
+    opacity: 0.8;
+}
+
+/* Select Input Specific Styles */
+select.neon-input {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300f3ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+select.neon-input option {
+    background-color: var(--secondary-dark);
+    color: var(--text-light);
+    padding: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .neon-table {
+        font-size: 0.9rem;
+    }
+    
+    .neon-button {
+        padding: 0.6rem 1rem;
+    }
+    
+    .checkbox-group {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+</style>
+
+<script>
+let allPlayers = {{ players|tojson|safe }};
+let allTeams = {{ teams|tojson|safe }};
+
+function updateTeamPlayers() {
+    const matchSelect = document.getElementById('match_id');
+    const teamSelect = document.getElementById('team_id');
+    const selectedOption = matchSelect.options[matchSelect.selectedIndex];
+    
+    // Clear existing options
+    teamSelect.innerHTML = '<option value="">Select Team</option>';
+    
+    if (matchSelect.value) {
+        const homeTeamId = selectedOption.dataset.homeTeam;
+        const awayTeamId = selectedOption.dataset.awayTeam;
+        
+        // Add home and away teams
+        const homeTeam = allTeams.find(t => t[0] == homeTeamId);
+        const awayTeam = allTeams.find(t => t[0] == awayTeamId);
+        
+        if (homeTeam) {
+            teamSelect.innerHTML += `<option value="${homeTeam[0]}">${homeTeam[1]}</option>`;
+        }
+        if (awayTeam) {
+            teamSelect.innerHTML += `<option value="${awayTeam[0]}">${awayTeam[1]}</option>`;
+        }
+    }
+    
+    updatePlayers();
+}
+
+function updatePlayers() {
+    const teamSelect = document.getElementById('team_id');
+    const playerSelect = document.getElementById('player_id');
+    
+    // Clear existing options
+    playerSelect.innerHTML = '<option value="">Select Player</option>';
+    
+    if (teamSelect.value) {
+        // Filter players by selected team
+        const teamPlayers = allPlayers.filter(p => p[2] == teamSelect.value);
+        
+        // Add filtered players
+        teamPlayers.forEach(player => {
+            playerSelect.innerHTML += `<option value="${player[0]}">${player[1]}</option>`;
+        });
+    }
+}
+
+function confirmDelete(id) {
+    document.getElementById('deleteEntityId').value = id;
+    $('#deleteModal').modal('show');
+}
+
+function resetForm() {
+    document.getElementById('goal_id').value = '';
+    document.getElementById('match_id').value = '';
+    document.getElementById('team_id').value = '';
+    document.getElementById('player_id').value = '';
+    document.getElementById('minute').value = '';
+    document.getElementById('is_penalty').checked = false;
+    document.getElementById('is_own_goal').checked = false;
+}
+</script>
+{% endblock %} 

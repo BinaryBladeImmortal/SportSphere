@@ -1,0 +1,389 @@
+{% extends "layout.html" %}
+{% block title %}Search - SportSphere{% endblock %}
+{% block content %}
+<div class="search-container">
+    <div class="search-header">
+        <div class="header-content">
+            <i class="fas fa-search header-icon"></i>
+            <h1 class="neon-title">Search Database</h1>
+        </div>
+        <p class="subtitle">Find teams, players, coaches, and more</p>
+        <div class="header-line"></div>
+    </div>
+
+    <div class="search-section">
+        <form method="POST" action="{{ url_for('search') }}" class="search-form">
+            <div class="search-input-group">
+                <input type="text" name="query" value="{{ query }}" class="neon-input" placeholder="Enter your search term..." required>
+                <button type="submit" class="neon-button">
+                    <i class="fas fa-search"></i>
+                    Search
+                </button>
+            </div>
+        </form>
+
+        {% if results %}
+        <div class="results-section">
+            <div class="results-header">
+                <i class="fas fa-list"></i>
+                <h2>Search Results</h2>
+                <span class="results-count">{{ results|length }} items found</span>
+            </div>
+            <div class="results-grid">
+                {% for result in results %}
+                <div class="result-card">
+                    <div class="result-icon">
+                        {% if result[2] == 'team' %}
+                            <i class="fas fa-users"></i>
+                        {% elif result[2] == 'player' %}
+                            <i class="fas fa-running"></i>
+                        {% elif result[2] == 'coach' %}
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        {% elif result[2] == 'stadium' %}
+                            <i class="fas fa-landmark"></i>
+                        {% elif result[2] == 'league' %}
+                            <i class="fas fa-trophy"></i>
+                        {% endif %}
+                    </div>
+                    <div class="result-info">
+                        <h3>{{ result[1] }}</h3>
+                        <span class="result-type">{{ result[2]|title }}</span>
+                    </div>
+                    <div class="result-actions">
+                        <a href="#" class="view-details" data-id="{{ result[0] }}" data-type="{{ result[2] }}">
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% elif query %}
+        <div class="no-results">
+            <i class="fas fa-search-minus"></i>
+            <p>No results found for "{{ query }}"</p>
+            <span>Try different keywords or check your spelling</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-green: #00ff9d;
+    --text-light: #ffffff;
+}
+
+.search-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+    color: var(--text-light);
+}
+
+.search-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.header-icon {
+    font-size: 2.5rem;
+    color: var(--neon-blue);
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+.neon-title {
+    font-size: 2.5rem;
+    color: var(--text-light);
+    text-shadow: 0 0 10px var(--neon-blue);
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin: 1rem 0 0;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+}
+
+.header-line {
+    width: 150px;
+    height: 3px;
+    background: var(--neon-blue);
+    margin: 1.5rem auto 0;
+    position: relative;
+    border-radius: 2px;
+}
+
+.header-line::before, .header-line::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--neon-blue);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.header-line::before {
+    left: -5px;
+}
+
+.header-line::after {
+    right: -5px;
+}
+
+.search-section {
+    background: var(--secondary-dark);
+    border-radius: 12px;
+    border: 1px solid var(--neon-blue);
+    padding: 2rem;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+}
+
+.search-input-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.neon-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--neon-blue);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.neon-input:focus {
+    outline: none;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+    border-color: var(--neon-purple);
+}
+
+.neon-button {
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.neon-button:hover {
+    background: var(--neon-blue);
+    color: var(--primary-dark);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+}
+
+.results-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+}
+
+.results-header i {
+    font-size: 1.5rem;
+    color: var(--neon-blue);
+}
+
+.results-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.results-count {
+    margin-left: auto;
+    color: var(--neon-green);
+    font-size: 0.9rem;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.result-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-3px);
+    background: rgba(0, 243, 255, 0.1);
+}
+
+.result-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.result-icon i {
+    font-size: 1.5rem;
+    color: var(--neon-purple);
+}
+
+.result-info {
+    flex: 1;
+}
+
+.result-info h3 {
+    margin: 0 0 0.3rem;
+    font-size: 1.1rem;
+    color: var(--text-light);
+}
+
+.result-type {
+    font-size: 0.9rem;
+    color: var(--neon-green);
+}
+
+.result-actions {
+    margin-left: auto;
+}
+
+.view-details {
+    color: var(--neon-blue);
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.view-details:hover {
+    transform: translateX(5px);
+}
+
+.no-results {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.no-results i {
+    font-size: 3rem;
+    color: var(--neon-purple);
+    margin-bottom: 1rem;
+}
+
+.no-results p {
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem;
+}
+
+.no-results span {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        padding: 0 1.5rem;
+    }
+
+    .search-input-group {
+        flex-direction: column;
+    }
+
+    .neon-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .results-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-container {
+        margin: 1.5rem auto;
+        padding: 0 1rem;
+    }
+
+    .search-section {
+        padding: 1.5rem;
+    }
+
+    .neon-title {
+        font-size: 2rem;
+    }
+
+    .header-icon {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .result-card {
+        padding: 1rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add ripple effect to buttons
+    const buttons = document.querySelectorAll('.neon-button');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const x = e.clientX - e.target.offsetLeft;
+            const y = e.clientY - e.target.offsetTop;
+            
+            const ripple = document.createElement('span');
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            
+            this.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 1000);
+        });
+    });
+
+    // Add hover sound effect (optional)
+    const resultCards = document.querySelectorAll('.result-card');
+    resultCards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            // Add hover sound if desired
+        });
+    });
+});
+</script>
+{% endblock %}

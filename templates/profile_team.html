@@ -1,0 +1,516 @@
+{% extends "user_dashboard.html" %}
+{% block user_content %}
+<div class="neon-section">
+    <div class="team-profile-header">
+        {% if logo_url %}
+            <img src="{{ logo_url }}" alt="{{ team[0] }} Logo" class="team-main-logo">
+        {% endif %}
+        <h2 class="neon-title">{{ team[0] }}</h2>
+    </div>
+    
+    <div class="team-info-grid">
+        <div class="info-card">
+            <div class="info-label">Founded</div>
+            <div class="info-value">{{ team[1] }}</div>
+        </div>
+        <div class="info-card">
+            <div class="info-label">Stadium</div>
+            <div class="info-value">{{ team[2] }}</div>
+        </div>
+        <div class="info-card">
+            <div class="info-label">Coach</div>
+            <div class="info-value">
+                {{ team[3] }}
+                {% if team[6] %}
+                    <img src="{{ team[6] }}" alt="Flag" class="flag-img">
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-label">League</div>
+            <div class="info-value">{{ team[4] }}</div>
+        </div>
+    </div>
+
+    <div class="compare-button-container">
+        <div class="dropdown">
+            <button class="neon-button compare-btn dropdown-toggle" type="button" id="compareDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-chart-bar"></i> Compare
+            </button>
+            <div class="dropdown-menu neon-dropdown" aria-labelledby="compareDropdown">
+                <a class="dropdown-item" href="{{ url_for('user.compare_teams', team1_id=team[5]) }}">
+                    <i class="fas fa-shield-alt"></i> Compare Teams
+                </a>
+                <a class="dropdown-item" href="{{ url_for('user.compare_players') }}">
+                    <i class="fas fa-user-friends"></i> Compare Players
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-section">
+        <h3 class="section-title">Players</h3>
+        {% if players %}
+            <div class="players-container">
+                {% for player in players %}
+                    <div class="player-card">
+                        <span class="position-badge {% if player[3] == 'Goalkeeper' %}gk{% elif player[3] == 'Defender' or player[3] == 'Defence' %}def{% elif player[3] == 'Midfielder' or player[3] == 'Midfield' %}mid{% elif player[3] == 'Forward' or player[3] == 'Offence' %}fwd{% endif %}">
+                            {{ player[3][0] }}
+                        </span>
+                        <div class="player-info">
+                            <a href="{{ url_for('user.profile_player', player_id=player[0]) }}" class="player-name">{{ player[1] }}</a>
+                            <div class="player-nationality">
+                                {% if player[4] %}
+                                    {{ player[4] }}
+                                    {% if player[5] %}
+                                        <img src="{{ player[5] }}" alt="Flag" class="flag-img">
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-data">No players found.</p>
+        {% endif %}
+    </div>
+
+    <div class="profile-section">
+        <h3 class="section-title">Recent Matches</h3>
+        {% if scores %}
+            <div class="matches-container">
+                {% for score in scores %}
+                    <div class="match-card">
+                        <div class="match-header">
+                            <span class="league-name">{{ score[1] }}</span>
+                            <span class="matchday">Matchday: {{ score[8] }}</span>
+                        </div>
+                        <a href="{{ url_for('user.profile_match', match_id=score[0]) }}" class="match-content">
+                            <div class="team home-team">
+                                <img src="{{ score[6] }}" alt="{{ score[2] }} Logo" class="team-logo">
+                                <span class="team-name">{{ score[2] }}</span>
+                            </div>
+                            <div class="match-score">
+                                <span class="score">{{ score[4] }} - {{ score[5] }}</span>
+                            </div>
+                            <div class="team away-team">
+                                <span class="team-name">{{ score[3] }}</span>
+                                <img src="{{ score[7] }}" alt="{{ score[3] }} Logo" class="team-logo">
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-data">No match scores found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-dark: #1a1b2e;
+    --secondary-dark: #242538;
+    --accent-blue: #4361ee;
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-red: #ff0055;
+    --neon-green: #00ff9d;
+    --neon-yellow: #ffdd00;
+    --text-light: #ffffff;
+    --text-gray: #8b8c9f;
+    --gk-color: #ffdd00;
+    --def-color: #00f3ff;
+    --mid-color: #00ff9d;
+    --fwd-color: #ff0055;
+}
+
+/* Section styling */
+.neon-section {
+    padding: 0;
+    background-color: transparent;
+    border-radius: 8px;
+    margin-top: 0;
+    width: 100%;
+}
+
+/* Team header */
+.team-profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1.5rem;
+}
+
+.team-main-logo {
+    height: 80px;
+    width: auto;
+    filter: drop-shadow(0 0 5px rgba(0, 243, 255, 0.5));
+}
+
+/* Title styling */
+.neon-title {
+    color: var(--text-light);
+    text-shadow: 0 0 3px var(--neon-blue), 0 0 5px var(--neon-blue);
+    font-size: 2rem;
+    position: relative;
+    display: inline-block;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* Team info grid */
+.team-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background-color: var(--secondary-dark);
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    color: var(--neon-blue);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.info-value {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.flag-img {
+    width: 20px;
+    height: auto;
+    max-height: 15px;
+    object-fit: cover;
+    border-radius: 3px;
+    margin-left: 8px;
+}
+
+/* Section styling */
+.profile-section {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    color: var(--text-light);
+    text-shadow: 0 0 2px var(--neon-blue);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background: var(--neon-blue);
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+/* Players styling */
+.players-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.8rem;
+}
+
+.player-card {
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.player-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 8px rgba(0, 243, 255, 0.3);
+}
+
+.position-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.position-badge.gk {
+    background-color: rgba(255, 221, 0, 0.2);
+    color: var(--gk-color);
+    border: 1px solid var(--gk-color);
+    box-shadow: 0 0 5px rgba(255, 221, 0, 0.3);
+}
+
+.position-badge.def {
+    background-color: rgba(0, 243, 255, 0.2);
+    color: var(--def-color);
+    border: 1px solid var(--def-color);
+    box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+}
+
+.position-badge.mid {
+    background-color: rgba(0, 255, 157, 0.2);
+    color: var(--mid-color);
+    border: 1px solid var(--mid-color);
+    box-shadow: 0 0 5px rgba(0, 255, 157, 0.3);
+}
+
+.position-badge.fwd {
+    background-color: rgba(255, 0, 85, 0.2);
+    color: var(--fwd-color);
+    border: 1px solid var(--fwd-color);
+    box-shadow: 0 0 5px rgba(255, 0, 85, 0.3);
+}
+
+.player-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.player-name {
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.player-name:hover {
+    color: var(--neon-blue);
+    text-shadow: 0 0 2px var(--neon-blue);
+}
+
+.player-nationality {
+    color: var(--text-gray);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Matches styling */
+.matches-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.match-card {
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
+}
+
+.match-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+}
+
+.match-header {
+    background-color: rgba(0, 243, 255, 0.1);
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-gray);
+    font-size: 0.85rem;
+    border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+}
+
+.match-content {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-decoration: none;
+}
+
+.team {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.home-team {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.away-team {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.team-logo {
+    height: 35px;
+    width: auto;
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+}
+
+.team-name {
+    color: var(--text-light);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+.match-score {
+    background-color: rgba(0, 243, 255, 0.2);
+    color: var(--text-light);
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-weight: bold;
+    margin: 0 1rem;
+    min-width: 80px;
+    text-align: center;
+    box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+    border: 1px solid var(--neon-blue);
+}
+
+.no-data {
+    color: var(--text-gray);
+    font-style: italic;
+    padding: 1rem;
+    background-color: var(--secondary-dark);
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .team-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .players-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .match-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .team {
+        justify-content: center;
+    }
+    
+    .home-team, .away-team {
+        text-align: center;
+    }
+    
+    .match-score {
+        margin: 0.5rem 0;
+    }
+    
+    .team-name {
+        max-width: none;
+    }
+}
+
+/* Compare Button */
+.compare-button-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.compare-btn {
+    background-color: rgba(0, 243, 255, 0.1);
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.compare-btn:hover {
+    background-color: rgba(0, 243, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+    transform: translateY(-2px);
+    color: var(--neon-blue);
+    text-decoration: none;
+}
+
+/* Dropdown styles */
+.neon-dropdown {
+    background-color: var(--primary-dark);
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+    min-width: 180px;
+    border-radius: 4px;
+}
+
+.neon-dropdown .dropdown-item {
+    color: var(--text-light);
+    padding: 0.6rem 1rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: transparent;
+}
+
+.neon-dropdown .dropdown-item:hover {
+    background-color: rgba(0, 243, 255, 0.2);
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+}
+
+.neon-dropdown .dropdown-item i {
+    color: var(--neon-blue);
+    font-size: 0.9rem;
+}
+
+.dropdown-toggle::after {
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+</style>
+{% endblock %}
