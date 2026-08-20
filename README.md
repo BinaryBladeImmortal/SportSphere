@@ -173,3 +173,11 @@ The active application is launched from `main.py`. The separate `playoff_test/`,
 - Use a strong unique `SECRET_KEY`.
 - Do not publish real personal email addresses or plaintext passwords in seed data.
 - Review database seed data before pushing this repository publicly.
+
+## License
+
+This project is licensed under the MIT License.  
+Copyright (c) 2025 kaimg  
+Copyright (c) 2026 JOLLS
+
+This project was originally based on an MIT‑licensed repo by kaimg. It has since been expanded with new pages, tools, and database connections and other features which are developed by Me and My team.
